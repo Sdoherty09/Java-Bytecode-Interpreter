@@ -5,7 +5,7 @@ import java.nio.ByteBuffer;
 
 public class OpcodeString {
 	private byte[] bytes;
-	public static String opcodes;
+	public static String opcodes="";
 	
 	private String byteToString(byte[] bytes) throws UnsupportedEncodingException
 	{
@@ -50,9 +50,38 @@ public class OpcodeString {
 				opcodes+="invokevirtual "+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[BytecodeParse.constantPool[((bytes[index+1] << 8)+bytes[index+2])-1].getInfo()[0]-1].getInfo()[0]-1].getBytes())+"\n";
 				index+=2;
 				break;
+			case 3:
+				opcodes+="iconst_0\n";
+				break;
+			case 60:
+				opcodes+="istore_1\n";
+				break;
+			case 61:
+				opcodes+="istore_2\n";
+				break;
+			case 28:
+				opcodes+="iload_2\n";
+				break;
+			case 16:
+				opcodes+="bipush "+bytes[index+1]+"\n";
+				index++;
+				break;
+			case 162:
+				opcodes+="if_icmpge "+(int)((bytes[index+1] << 8)+bytes[index+2])+"\n";
+				index+=2;
+				break;
+			case 132:
+				opcodes+="iinc "+bytes[index+1]+", "+bytes[index+2]+"\n";
+				index+=2;
+				break;
+			case 167:
+				opcodes+="goto "+(int)((bytes[index+1] << 8)+bytes[index+2])+"\n";
+				index+=2;
+				break;
 			default:
 				opcodes+=bytes[index] & 0xff;
 				opcodes+="\n";
+				break;
 			}
 		}
 		
