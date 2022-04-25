@@ -3,6 +3,7 @@ package bytecodeInterpreter;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 public class Attribute {
 	private int nameIndex;
@@ -43,7 +44,10 @@ public class Attribute {
 			for(int k=0;k<(int)attributeInfo[2];k++)
 			{
 				code[k]=(byte)BytecodeParse.inputStream.readUnsignedByte();
+				System.out.println(code[k] & 0xff);
 			}
+			OpcodeString opcodeString=new OpcodeString(code);
+			System.out.println(opcodeString.toString());
 			attributeInfo[3]=code;
 			attributeInfo[4]=BytecodeParse.inputStream.readUnsignedShort(); //exception_table_length
 			ExceptionType[] exceptionTable=new ExceptionType[(int)attributeInfo[4]];

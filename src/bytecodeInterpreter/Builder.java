@@ -126,7 +126,10 @@ public class Builder {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
+		    	  text.setText(OpcodeString.opcodes);
+		    	  OpcodeString.opcodes="";
 		      }
+		      
 		    });
 		
 		Form form = formToolkit.createForm(shell);
