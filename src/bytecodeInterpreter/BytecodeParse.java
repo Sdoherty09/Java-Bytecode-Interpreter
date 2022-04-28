@@ -5,14 +5,26 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 
 public class BytecodeParse {
 	private byte[] bytecodeBytes;
 	public static DataInputStream inputStream;
 	public static ConstantPool[] constantPool;
-
+	public String opcodeString="";
+	private OpcodeString opcodeStringify;
+	public static ArrayList<ArrayList<String>> opcodes;
+	
 	public BytecodeParse(byte[] bytecodeBytes) {
 		setBytecodeBytes(bytecodeBytes);
+	}
+	
+	public String getOpcodeString() {
+		return opcodeString;
+	}
+
+	public void setOpcodeString(String opcodeString) {
+		this.opcodeString = opcodeString;
 	}
 
 	public byte[] getBytecodeBytes() {
@@ -22,6 +34,16 @@ public class BytecodeParse {
 	public void setBytecodeBytes(byte[] bytecodeBytes) {
 		this.bytecodeBytes = bytecodeBytes;
 	}
+	
+	public OpcodeString getOpcodeStringify() {
+		return opcodeStringify;
+	}
+
+	public void setOpcodeStringify(OpcodeString opcodeStringify) {
+		this.opcodeStringify = opcodeStringify;
+		opcodes=null;
+	}
+
 	private String byteToString(byte[] bytes) throws UnsupportedEncodingException
 	{
 		ByteBuffer buffer = ByteBuffer.allocate(bytes.length);
@@ -83,28 +105,17 @@ public class BytecodeParse {
 			if (tag==1) constantPool[index] = new ConstantPool(tag, bytes);
 			else constantPool[index] = new ConstantPool(tag, info);
 		}
-		for(int index=0;index<constantPool.length;index++)
-		{
-			if(constantPool[index].getTag()==1)
-			{
-				System.out.println(byteToString(constantPool[index].getBytes()));
-			}
-		}
 		int accessFlags=inputStream.readUnsignedShort();
-		System.out.println("access flags: "+accessFlags);
 		int thisClass=inputStream.readUnsignedShort();
 		//System.out.println("this class: "+byteToString(constantPool[constantPool[thisClass-1].getInfo()[0]-1].getBytes()));
 		int superClass=inputStream.readUnsignedShort();
-		System.out.println("super class: "+byteToString(constantPool[constantPool[superClass-1].getInfo()[0]-1].getBytes()));
 		int interfacesCount=inputStream.readUnsignedShort();
-		System.out.println("interfaces count: "+interfacesCount);
 		ConstantPool interfaces[] = new ConstantPool[interfacesCount];
 		for(int index=0;index<interfacesCount;index++)
 		{
 			tag=inputStream.readUnsignedByte();
 			info=new int[1];
 			info[0]=inputStream.readUnsignedShort();
-			System.out.println(tag);
 			interfaces[index]=new ConstantPool(tag, info);
 		}
 		int fieldsCount=inputStream.readUnsignedShort();
@@ -134,11 +145,14 @@ public class BytecodeParse {
 			for(int j=0;j<methodAttributesCount;j++)
 			{
 				methodAttributes[j]=new Attribute();
-				System.out.println("method attribute: "+byteToString(constantPool[methodAttributes[j].getNameIndex()-1].getBytes()));
+				if(byteToString(constantPool[methodAttributes[j].getNameIndex()-1].getBytes()).equals("Code"))
+				{
+					opcodeStringify=new OpcodeString((byte[])methodAttributes[j].getInfo()[3], byteToString(constantPool[methodNameIndex-1].getBytes())+byteToString(constantPool[methodDescriptorIndex-1].getBytes()));
+					opcodeString = opcodeStringify.toString();
+				}
 			}
 			
 		}
-		System.out.println("methods count: "+methodsCount);
 	}
 }
 //readUnsignedByte, readUnsignedShort, and readInt 

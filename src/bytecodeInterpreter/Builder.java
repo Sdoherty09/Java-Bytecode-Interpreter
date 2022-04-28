@@ -19,13 +19,16 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.custom.TableCursor;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.widgets.Listener;
@@ -33,6 +36,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.wb.swt.SWTResourceManager;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.RGB;
 
 public class Builder {
 
@@ -41,6 +45,8 @@ public class Builder {
 	private final FormToolkit formToolkit = new FormToolkit(Display.getDefault());
 	private Table table;
 	private Table table_1;
+	private BytecodeParse bytecodeParse;
+	int highlightSelection=1;
 
 	/**
 	 * Launch the application.
@@ -108,26 +114,39 @@ public class Builder {
 		    	  String[] files= {"*.class"};
 		    	  fileDialog.setFilterExtensions(files);
 		    	  String filePath = fileDialog.open();
-		    	  File file = new File(filePath);
+		    	  File file = null;
+		    	  if(bytecodeParse!=null)
+		    	  {
+		    		  bytecodeParse.setOpcodeStringify(null);
+		    	  }
+		    	  try
+		    	  {
+		    		  file = new File(filePath);
+		    		  byte[] bytes = null;
+			    	  try {
+						bytes = Files.readAllBytes(Paths.get(file.toString()));
+					} catch (IOException|NullPointerException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+			    	  bytecodeParse = new BytecodeParse(bytes);
+			    	  try {
+						bytecodeParse.parse();
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+			    	  text.setText(bytecodeParse.getOpcodeString());
+		    	  }
+		    	  catch(NullPointerException e1)
+		    	  {
+		    		  e1.printStackTrace();
+		    		  file = null;
+		    	  }
 		    	  /*CommandResponse commandResponse = new CommandResponse(file);
 		    	  String bytecode = commandResponse.getResponse();
 		    	  text.setText(bytecode.substring(bytecode.indexOf("\n")+1));*/
-		    	  byte[] bytes = null;
-		    	  try {
-					bytes = Files.readAllBytes(Paths.get(file.toString()));
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-		    	  BytecodeParse bytecodeParse = new BytecodeParse(bytes);
-		    	  try {
-					bytecodeParse.parse();
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-		    	  text.setText(OpcodeString.opcodes);
-		    	  OpcodeString.opcodes="";
+		    	  
 		      }
 		      
 		    });
@@ -141,6 +160,12 @@ public class Builder {
 		table = tableViewer.getTable();
 		table.setBounds(301, 50, 279, 357);
 		formToolkit.paintBordersFor(table);
+		table.addListener(SWT.EraseItem, new Listener() {
+		    @Override
+		    public void handleEvent(Event event) {
+		        event.detail &= ~SWT.HIGH;
+		    }
+		});
 		
 		TableCursor tableCursor = new TableCursor(table, SWT.NONE);
 		formToolkit.adapt(tableCursor);
@@ -171,17 +196,63 @@ public class Builder {
 		btnNewButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				ArrayList<TableItem> tableItems = null;
+				try
+				{
+					
+					ArrayList<ArrayList<String>> opcodes=BytecodeParse.opcodes;
+					tableItems = new ArrayList<TableItem>();
+					for(int index=1;index<opcodes.size();index++)
+					{
+						for(int j=1;j<opcodes.get(index).size();j++)
+						{
+							TableItem tableItem=new TableItem(table, SWT.NONE);
+							tableItem.setText(opcodes.get(index).get(j));
+							tableItems.add(tableItem);
+						}
+						
+					}
+				}
+				catch(NullPointerException e1)
+				{
+					
+				}
+				Display display = Display.getDefault();
 				
+				table.getItem(highlightSelection).setBackground(0, new Color(display, 255, 0, 0));
 			}
 		});
 		btnNewButton.setImage(SWTResourceManager.getImage(new File("src/swtbuilder/images/play.png").getAbsolutePath()));
-		System.out.println(new File("images/play.png").getAbsolutePath());
+		//System.out.println(new File("images/play.png").getAbsolutePath());
 		btnNewButton.setBounds(10, 10, 34, 34);
 		formToolkit.adapt(btnNewButton, true, true);
 		
 		Button button = formToolkit.createButton(shell, "", SWT.NONE);
+		button.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				for(int index=1;index<table.getItemCount();index++)
+				{
+					table.getItem(index).setText("");
+				}
+			}
+		});
 		button.setImage(SWTResourceManager.getImage(Builder.class, "/org/eclipse/jface/wizard/images/stop.png"));
-		button.setBounds(56, 10, 34, 34);
+		button.setBounds(50, 10, 34, 34);
+		
+		Button button_1 = new Button(shell, SWT.NONE);
+		button_1.setImage(SWTResourceManager.getImage(new File("src/swtbuilder/images/next.png").getAbsolutePath()));
+		button_1.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				Display display = Display.getDefault();
+				table.getItem(highlightSelection).setBackground(0, new Color(display, 255, 255, 255));
+				highlightSelection++;
+				table.getItem(highlightSelection).setBackground(0, new Color(display, 255, 0, 0));
+			}
+		});
+		button_1.setBounds(90, 10, 34, 34);
+		formToolkit.adapt(button_1, true, true);
 		
 	}
 }

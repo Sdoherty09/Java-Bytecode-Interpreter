@@ -2,10 +2,11 @@ package bytecodeInterpreter;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 
 public class OpcodeString {
 	private byte[] bytes;
-	public static String opcodes="";
+	private String className;
 	
 	private String byteToString(byte[] bytes) throws UnsupportedEncodingException
 	{
@@ -18,74 +19,85 @@ public class OpcodeString {
 	    }
 		return newContent;
 	}
-	public OpcodeString(byte[] bytes) {
+	public OpcodeString(byte[] bytes, String className) {
 		setBytes(bytes);
+		setClassName(className);
 	}
 
-	private String stringify() throws UnsupportedEncodingException
+	public ArrayList<ArrayList<String>> stringify() throws UnsupportedEncodingException
 	{
+		if(BytecodeParse.opcodes==null)
+		{
+			BytecodeParse.opcodes=new ArrayList<ArrayList<String>>();
+		}
+		else
+		{
+			BytecodeParse.opcodes.add(new ArrayList<String>());
+		}
+		ArrayList<String> temp = new ArrayList<String>();
+		temp.add(className+":");
 		for(int index=0;index<bytes.length;index++)
 		{
 			switch(bytes[index] & 0xff)
 			{
 			case 42:
-				opcodes+="aload_0\n";
+				temp.add(index+ ": aload_0");
 				break;
 			case 183:
-				opcodes+="invokespecial "+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[BytecodeParse.constantPool[((bytes[index+1] << 8)+bytes[index+2])-1].getInfo()[0]-1].getInfo()[0]-1].getBytes())+"\n";
+				temp.add(index+": invokespecial\t "+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[BytecodeParse.constantPool[((bytes[index+1] << 8)+bytes[index+2])-1].getInfo()[0]-1].getInfo()[0]-1].getBytes()));
 				index+=2;
 				break;
 			case 177:
-				opcodes+="return\n";
+				temp.add(index+": return\n");
 				break;
 			case 178:
-				opcodes+="getstatic "+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[BytecodeParse.constantPool[((bytes[index+1] << 8)+bytes[index+2])-1].getInfo()[0]-1].getInfo()[0]-1].getBytes())+"\n";
+				temp.add(index+ ": getstatic\t "+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[BytecodeParse.constantPool[((bytes[index+1] << 8)+bytes[index+2])-1].getInfo()[0]-1].getInfo()[0]-1].getBytes()));
 				index+=2;
 				break;
 			case 18:
-				opcodes+="ldc "+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[bytes[index+1]-1].getInfo()[0]-1].getBytes())+"\n";
+				temp.add(index+ ": ldc\t "+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[bytes[index+1]-1].getInfo()[0]-1].getBytes()));
 				index++;
 				break;
 			case 182:
-				opcodes+="invokevirtual "+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[BytecodeParse.constantPool[((bytes[index+1] << 8)+bytes[index+2])-1].getInfo()[0]-1].getInfo()[0]-1].getBytes())+"\n";
+				temp.add(index+ ": invokevirtual\t "+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[BytecodeParse.constantPool[((bytes[index+1] << 8)+bytes[index+2])-1].getInfo()[0]-1].getInfo()[0]-1].getBytes()));
 				index+=2;
 				break;
 			case 3:
-				opcodes+="iconst_0\n";
+				temp.add(index+ ": iconst_0");
 				break;
 			case 60:
-				opcodes+="istore_1\n";
+				temp.add(index+": istore_1");
 				break;
 			case 61:
-				opcodes+="istore_2\n";
+				temp.add(index+": istore_2");
 				break;
 			case 28:
-				opcodes+="iload_2\n";
+				temp.add(index+": iload_2");
 				break;
 			case 16:
-				opcodes+="bipush "+bytes[index+1]+"\n";
+				temp.add(index+": bipush\t "+bytes[index+1]);
 				index++;
 				break;
 			case 162:
-				opcodes+="if_icmpge "+(int)((bytes[index+1] << 8)+bytes[index+2])+"\n";
+				temp.add(index+": if_icmpge\t "+(short)((bytes[index+1]& 0xff << 8)+bytes[index+2]& 0xff));
 				index+=2;
 				break;
 			case 132:
-				opcodes+="iinc "+bytes[index+1]+", "+bytes[index+2]+"\n";
+				temp.add(index+": iinc\t\t "+bytes[index+1]+", "+bytes[index+2]);
 				index+=2;
 				break;
 			case 167:
-				opcodes+="goto "+(int)((bytes[index+1] << 8)+bytes[index+2])+"\n";
+				temp.add(index+": goto\t "+(short)(((bytes[index+1] & 0xff) << 8)+bytes[index+2] & 0xff));
+				System.out.println((bytes[index+1])+" "+bytes[index+2]);
 				index+=2;
 				break;
 			default:
-				opcodes+=bytes[index] & 0xff;
-				opcodes+="\n";
+				temp.add(""+(bytes[index] & 0xff));
 				break;
 			}
 		}
-		
-		return opcodes;
+		BytecodeParse.opcodes.add(temp);
+		return BytecodeParse.opcodes;
 	}
 	
 	public byte[] getBytes() {
@@ -95,15 +107,39 @@ public class OpcodeString {
 	public void setBytes(byte[] bytes) {
 		this.bytes = bytes;
 	}
+	
+	public String getClassName() {
+		return className;
+	}
+	public void setClassName(String className) {
+		this.className=className;
+	}
+	public static ArrayList<ArrayList<String>> getOpcodes() {
+		return BytecodeParse.opcodes;
+	}
+	public static void setOpcodes(ArrayList<ArrayList<String>> opcodes) {
+		BytecodeParse.opcodes = opcodes;
+	}
+	
+	@Override
 	public String toString()
 	{
+		String output="";
 		try {
-			return stringify();
+			stringify();
 		} catch (UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return null;
+		for(int index=0;index<BytecodeParse.opcodes.size();index++)
+		{
+			for(int j=0;j<BytecodeParse.opcodes.get(index).size();j++)
+			{
+				output+=BytecodeParse.opcodes.get(index).get(j)+"\n";
+			}
+			
+			//System.out.println("opcode get: "+opcodes.get(index));
+		}
+		return output;
 	}
-	
 }

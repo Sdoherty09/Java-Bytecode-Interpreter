@@ -24,9 +24,7 @@ public class Attribute {
 	
 	public Attribute() throws IOException {
 		Object attributeInfo[] = null;
-		System.out.println("test "+BytecodeParse.constantPool.length);
 		int attributeNameIndex=BytecodeParse.inputStream.readUnsignedShort();
-		System.out.println("name index: "+attributeNameIndex);
 		int attributeLength=BytecodeParse.inputStream.readInt();
 		//System.out.println("switch: "+byteToString(BytecodeParse.constantPool[attributeNameIndex-1].getBytes()));
 		switch(byteToString(BytecodeParse.constantPool[attributeNameIndex-1].getBytes()))
@@ -44,10 +42,7 @@ public class Attribute {
 			for(int k=0;k<(int)attributeInfo[2];k++)
 			{
 				code[k]=(byte)BytecodeParse.inputStream.readUnsignedByte();
-				System.out.println(code[k] & 0xff);
 			}
-			OpcodeString opcodeString=new OpcodeString(code);
-			System.out.println(opcodeString.toString());
 			attributeInfo[3]=code;
 			attributeInfo[4]=BytecodeParse.inputStream.readUnsignedShort(); //exception_table_length
 			ExceptionType[] exceptionTable=new ExceptionType[(int)attributeInfo[4]];
@@ -67,7 +62,6 @@ public class Attribute {
 				int codeAttributeNameIndex=BytecodeParse.inputStream.readUnsignedShort();
 				int codeAttributeLength=BytecodeParse.inputStream.readInt();
 				Object codeAttributeInfo[] = null;
-				System.out.println("switch: "+byteToString(BytecodeParse.constantPool[codeAttributeNameIndex-1].getBytes()));
 				switch(byteToString(BytecodeParse.constantPool[codeAttributeNameIndex-1].getBytes()))
 				{
 				case "LineNumberTable":
