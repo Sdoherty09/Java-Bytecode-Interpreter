@@ -197,6 +197,7 @@ public class Builder {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				ArrayList<TableItem> tableItems = null;
+				table.setItemCount(1);
 				try
 				{
 					
@@ -212,14 +213,17 @@ public class Builder {
 						}
 						
 					}
+					Display display = Display.getDefault();
+					highlightSelection=1;
+					table.getItem(highlightSelection).setBackground(0, new Color(display, 255, 0, 0));
 				}
 				catch(NullPointerException e1)
 				{
 					
 				}
-				Display display = Display.getDefault();
 				
-				table.getItem(highlightSelection).setBackground(0, new Color(display, 255, 0, 0));
+				
+				
 			}
 		});
 		btnNewButton.setImage(SWTResourceManager.getImage(new File("src/swtbuilder/images/play.png").getAbsolutePath()));
@@ -235,6 +239,9 @@ public class Builder {
 				{
 					table.getItem(index).setText("");
 				}
+				Display display = Display.getDefault();
+				table.getItem(highlightSelection).setBackground(0, new Color(display, 255, 255, 255));
+				highlightSelection=1;
 			}
 		});
 		button.setImage(SWTResourceManager.getImage(Builder.class, "/org/eclipse/jface/wizard/images/stop.png"));
@@ -245,10 +252,14 @@ public class Builder {
 		button_1.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				Display display = Display.getDefault();
-				table.getItem(highlightSelection).setBackground(0, new Color(display, 255, 255, 255));
-				highlightSelection++;
-				table.getItem(highlightSelection).setBackground(0, new Color(display, 255, 0, 0));
+				if(table.getItemCount()!=1&&highlightSelection<table.getItemCount()-1)
+				{
+					Display display = Display.getDefault();
+					table.getItem(highlightSelection).setBackground(0, new Color(display, 255, 255, 255));
+					highlightSelection++;
+					table.getItem(highlightSelection).setBackground(0, new Color(display, 255, 0, 0));
+				}
+				
 			}
 		});
 		button_1.setBounds(90, 10, 34, 34);
