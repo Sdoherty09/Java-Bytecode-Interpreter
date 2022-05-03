@@ -24,4 +24,13 @@ public class Stack {
 		list.add(0, toPush);
 		return list;
 	}
+	public ArrayList<String> pop() {
+		ArrayList<String> temp=new ArrayList<String>();
+		for(int index=1;index<list.size();index++)
+		{
+			temp.add(list.get(index));
+		}
+		System.out.println(list.get(0));
+		return temp;
+	}
 }

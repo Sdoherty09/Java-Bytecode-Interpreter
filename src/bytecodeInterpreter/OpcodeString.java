@@ -75,7 +75,7 @@ public class OpcodeString {
 				index++;
 				break;
 			case 162:
-				temp.add(index+": if_icmpge\t "+(short)((bytes[index+1]& 0xff << 8)+bytes[index+2]& 0xff));
+				temp.add(index+": if_icmpge\t "+(index+(short)((bytes[index+1]& 0xff << 8)+bytes[index+2]& 0xff)));
 				index+=2;
 				break;
 			case 132:
@@ -83,7 +83,7 @@ public class OpcodeString {
 				index+=2;
 				break;
 			case 167:
-				temp.add(index+": goto\t "+(short)(((bytes[index+1] & 0xff) << 8)+bytes[index+2] & 0xff));
+				temp.add(index+": goto\t "+(index+(short)((bytes[index+1]& 0xff << 8)+(bytes[index+2] & 0xff))));
 				System.out.println((bytes[index+1])+" "+bytes[index+2]);
 				index+=2;
 				break;

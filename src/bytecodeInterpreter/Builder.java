@@ -54,7 +54,7 @@ public class Builder {
 		String selection = table.getItem(highlightSelection).getText();
 		selection = selection.substring(selection.indexOf(':')+2);
 		ArrayList<TableItem> tableItems=new ArrayList<TableItem>();
-		for(int index=0;index<table_2.getItemCount();index++)
+		for(int index=1;index<table_2.getItemCount();index++)
 		{
 			tableItems.add(table_2.getItem(index));
 		}
@@ -68,11 +68,60 @@ public class Builder {
 		Stack stack=new Stack(list);
 		TableItem tableItem;
 		System.out.println(selection);
+		String newContent;
 		switch(selection) {
-		case "aload_0":
+		case "aload_0": case "iconst_0":
 			list=stack.push("0");
 			table_2.setItemCount(table_2.getItemCount()+1);
-			for(int index=1;index<list.size();index++)
+			for(int index=1;index<table_2.getItemCount();index++)
+			{
+				table_2.getItem(index).setText(list.get(index-1));
+				
+			}
+			break;
+		
+		case "iconst_1":
+			list=stack.push("1");
+			table_2.setItemCount(table_2.getItemCount()+1);
+			for(int index=1;index<table_2.getItemCount();index++)
+			{
+				table_2.getItem(index).setText(list.get(index-1));
+				
+			}
+			break;	
+		case "istore_1":
+			newContent="1 -> "+table_2.getItem(1).getText();
+			list=stack.pop();
+			stack.setList(list);
+			list=stack.push(newContent);
+			for(int index=1;index<table_2.getItemCount();index++)
+			{
+				table_2.getItem(index).setText(list.get(index-1));
+				
+			}
+			break;
+		case "istore_2":
+			newContent="2 -> "+table_2.getItem(1).getText();
+			list=stack.pop();
+			stack.setList(list);
+			list=stack.push(newContent);
+			for(int index=1;index<table_2.getItemCount();index++)
+			{
+				table_2.getItem(index).setText(list.get(index-1));
+				
+			}
+			break;
+		case "iload_2":
+			String toFind="";
+			int j=1;
+			while(!toFind.contains("2 ->"))
+			{
+				toFind=table_2.getItem(j).getText();
+			}
+			toFind=toFind.substring(toFind.indexOf(">")+2);
+			list=stack.push(toFind);
+			table_2.setItemCount(table_2.getItemCount()+1);
+			for(int index=1;index<table_2.getItemCount();index++)
 			{
 				table_2.getItem(index).setText(list.get(index-1));
 				
@@ -82,19 +131,19 @@ public class Builder {
 		case "invokespecial	 java/lang/Object":
 			list=stack.push("java/lang/Object");
 			table_2.setItemCount(table_2.getItemCount()+1);
-			for(int index=1;index<list.size();index++)
+			for(int index=1;index<table_2.getItemCount();index++)
 			{
 				table_2.getItem(index).setText(list.get(index-1));
 			}
 			break;
-		default:
+		/*default:
 			System.out.println("test");
 			for(int index=1;index<table_2.getItemCount();index++)
 			{
 				table_2.getItem(index).setText("");
 			}
 			table_2.setItemCount(1);
-			break;
+			break;*/
 		}
 	}
 	
@@ -294,13 +343,25 @@ public class Builder {
 		button.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				for(int index=1;index<table.getItemCount();index++)
+				try
 				{
-					table.getItem(index).setText("");
+					for(int index=1;index<table.getItemCount();index++)
+					{
+						table.getItem(index).setText("");
+					}
+					Display display = Display.getDefault();
+					table.getItem(highlightSelection).setBackground(0, new Color(display, 255, 255, 255));
+					highlightSelection=1;
+					for(int index=1;index<table_2.getItemCount();index++)
+					{
+						table_2.getItem(index).setText("");
+					}
+					table_2.setItemCount(1);
 				}
-				Display display = Display.getDefault();
-				table.getItem(highlightSelection).setBackground(0, new Color(display, 255, 255, 255));
-				highlightSelection=1;
+				catch(IllegalArgumentException e1)
+				{
+					e1.printStackTrace();
+				}
 			}
 		});
 		button.setImage(SWTResourceManager.getImage(Builder.class, "/org/eclipse/jface/wizard/images/stop.png"));
