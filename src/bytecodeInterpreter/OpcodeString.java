@@ -24,18 +24,14 @@ public class OpcodeString {
 		setClassName(className);
 	}
 
-	public ArrayList<ArrayList<String>> stringify() throws UnsupportedEncodingException
+	public OpcodeString(byte[] bytes) {
+		setBytes(bytes);
+	}
+	
+	public ArrayList<String> stringify() throws UnsupportedEncodingException
 	{
-		if(BytecodeParse.opcodes==null)
-		{
-			BytecodeParse.opcodes=new ArrayList<ArrayList<String>>();
-		}
-		else
-		{
-			BytecodeParse.opcodes.add(new ArrayList<String>());
-		}
 		ArrayList<String> temp = new ArrayList<String>();
-		temp.add(className+":");
+		if(className!=null) temp.add(className+":");		
 		for(int index=0;index<bytes.length;index++)
 		{
 			switch(bytes[index] & 0xff)
@@ -96,8 +92,7 @@ public class OpcodeString {
 				break;
 			}
 		}
-		BytecodeParse.opcodes.add(temp);
-		return BytecodeParse.opcodes;
+		return temp;
 	}
 	
 	public byte[] getBytes() {
@@ -114,10 +109,10 @@ public class OpcodeString {
 	public void setClassName(String className) {
 		this.className=className;
 	}
-	public static ArrayList<ArrayList<String>> getOpcodes() {
+	public ArrayList<String> getOpcodes() {
 		return BytecodeParse.opcodes;
 	}
-	public static void setOpcodes(ArrayList<ArrayList<String>> opcodes) {
+	public void setOpcodes(ArrayList<String> opcodes) {
 		BytecodeParse.opcodes = opcodes;
 	}
 	
@@ -125,21 +120,18 @@ public class OpcodeString {
 	public String toString()
 	{
 		String output="";
+		ArrayList<String> opcodes;
 		try {
-			stringify();
-		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		for(int index=0;index<BytecodeParse.opcodes.size();index++)
-		{
-			for(int j=0;j<BytecodeParse.opcodes.get(index).size();j++)
+			opcodes = stringify();
+			for(int index=0;index<opcodes.size();index++)
 			{
-				output+=BytecodeParse.opcodes.get(index).get(j)+"\n";
+				output+=opcodes.get(index)+"\n";
 			}
-			
-			//System.out.println("opcode get: "+opcodes.get(index));
+		} catch (UnsupportedEncodingException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
 		}
+		
 		return output;
 	}
 }

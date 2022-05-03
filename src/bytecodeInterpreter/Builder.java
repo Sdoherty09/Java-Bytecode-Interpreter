@@ -37,6 +37,7 @@ import org.eclipse.wb.swt.SWTResourceManager;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.widgets.List;
 
 public class Builder {
 
@@ -47,7 +48,56 @@ public class Builder {
 	private Table table_1;
 	private BytecodeParse bytecodeParse;
 	int highlightSelection=1;
+	private Table table_2;
 
+	private void getSelection() {
+		String selection = table.getItem(highlightSelection).getText();
+		selection = selection.substring(selection.indexOf(':')+2);
+		ArrayList<TableItem> tableItems=new ArrayList<TableItem>();
+		for(int index=0;index<table_2.getItemCount();index++)
+		{
+			tableItems.add(table_2.getItem(index));
+		}
+		
+		
+		ArrayList<String> list = new ArrayList<String>();
+		for(int index=0;index<tableItems.size();index++)
+		{
+			list.add(tableItems.get(index).getText());
+		}
+		Stack stack=new Stack(list);
+		TableItem tableItem;
+		System.out.println(selection);
+		switch(selection) {
+		case "aload_0":
+			list=stack.push("0");
+			table_2.setItemCount(table_2.getItemCount()+1);
+			for(int index=1;index<list.size();index++)
+			{
+				table_2.getItem(index).setText(list.get(index-1));
+				
+			}
+			break;
+		
+		case "invokespecial	 java/lang/Object":
+			list=stack.push("java/lang/Object");
+			table_2.setItemCount(table_2.getItemCount()+1);
+			for(int index=1;index<list.size();index++)
+			{
+				table_2.getItem(index).setText(list.get(index-1));
+			}
+			break;
+		default:
+			System.out.println("test");
+			for(int index=1;index<table_2.getItemCount();index++)
+			{
+				table_2.getItem(index).setText("");
+			}
+			table_2.setItemCount(1);
+			break;
+		}
+	}
+	
 	/**
 	 * Launch the application.
 	 * @param args
@@ -81,7 +131,7 @@ public class Builder {
 	 */
 	protected void createContents() {
 		shell = new Shell();
-		shell.setSize(609, 484);
+		shell.setSize(862, 484);
 		shell.setText("Bytecode Interpreter");
 		
 		Menu menu = new Menu(shell, SWT.BAR);
@@ -158,7 +208,7 @@ public class Builder {
 		
 		TableViewer tableViewer = new TableViewer(shell, SWT.BORDER | SWT.FULL_SELECTION);
 		table = tableViewer.getTable();
-		table.setBounds(301, 50, 279, 357);
+		table.setBounds(301, 50, 253, 357);
 		formToolkit.paintBordersFor(table);
 		table.addListener(SWT.EraseItem, new Listener() {
 		    @Override
@@ -170,23 +220,14 @@ public class Builder {
 		TableCursor tableCursor = new TableCursor(table, SWT.NONE);
 		formToolkit.adapt(tableCursor);
 		formToolkit.paintBordersFor(tableCursor);
-		
-		TableColumn tblclmnBytecode = new TableColumn(table, SWT.NONE);
-		tblclmnBytecode.setWidth(table.getBounds().width/2);
-		tblclmnBytecode.setText("Bytecode");
-		
-		
-		TableColumn tblclmnValue = new TableColumn(table, SWT.NONE);
-		tblclmnValue.setWidth(table.getBounds().width/2);
-		tblclmnValue.setText("Value");
 			
-		TableItem item1 = new TableItem(table, SWT.NONE);
-	    item1.setText(new String[] { "Bytecode", "Stack"});
+		TableItem item1 = new TableItem(table, SWT.CENTER);
+	    item1.setText("Bytecode");
 	    Font boldFont = new Font( item1.getDisplay(), new FontData( "Arial", 12, SWT.BOLD ) );
 	    item1.setFont( boldFont );
 	
 		table_1 = new Table(shell, SWT.BORDER | SWT.FULL_SELECTION);
-		table_1.setBounds(301, 50, 279, 357);
+		table_1.setBounds(301, 50, 253, 357);
 		formToolkit.adapt(table_1);
 		formToolkit.paintBordersFor(table_1);
 		table_1.setHeaderVisible(true);
@@ -198,10 +239,28 @@ public class Builder {
 			public void widgetSelected(SelectionEvent e) {
 				ArrayList<TableItem> tableItems = null;
 				table.setItemCount(1);
+				OpcodeString opcodeString;
+				TableItem tableItem;
+				tableItems = new ArrayList<TableItem>();
 				try
 				{
-					
-					ArrayList<ArrayList<String>> opcodes=BytecodeParse.opcodes;
+					ArrayList<byte[]> codeBytes=bytecodeParse.getCodeBytes();
+					for(int index=0;index<codeBytes.size();index++)
+					{
+						opcodeString=new OpcodeString(codeBytes.get(index));
+						
+						ArrayList<String> tableBytecode = opcodeString.stringify();
+						for(int j=0;j<tableBytecode.size();j++)
+						{
+							tableItem=new TableItem(table, SWT.NONE);
+							tableItem.setText(tableBytecode.get(j));
+							tableItems.add(tableItem);
+						}
+						tableItem=new TableItem(table, SWT.NONE);
+						tableItem.setText("");
+						tableItems.add(tableItem);
+					}
+					/*ArrayList<ArrayList<String>> opcodes=BytecodeParse.opcodes;
 					tableItems = new ArrayList<TableItem>();
 					for(int index=1;index<opcodes.size();index++)
 					{
@@ -212,18 +271,18 @@ public class Builder {
 							tableItems.add(tableItem);
 						}
 						
-					}
+					}*/
 					Display display = Display.getDefault();
 					highlightSelection=1;
 					table.getItem(highlightSelection).setBackground(0, new Color(display, 255, 0, 0));
+					//System.out.println("test "+byteToString(BytecodeParse.constantPool[(int)bytecodeParse.getCodeMethods().get(0).getAttributes()[0].getInfo()[0]-1].getBytes()));
+					//byteToString(constantPool[constantPool[thisClass-1].getInfo()[0]-1].getBytes()));
+					getSelection();
 				}
-				catch(NullPointerException e1)
+				catch(NullPointerException | UnsupportedEncodingException e1)
 				{
-					
-				}
-				
-				
-				
+					e1.printStackTrace();
+				}	
 			}
 		});
 		btnNewButton.setImage(SWTResourceManager.getImage(new File("src/swtbuilder/images/play.png").getAbsolutePath()));
@@ -252,18 +311,34 @@ public class Builder {
 		button_1.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				if(table.getItemCount()!=1&&highlightSelection<table.getItemCount()-1)
+				if(table.getItemCount()!=1&&highlightSelection<table.getItemCount()-2)
 				{
 					Display display = Display.getDefault();
 					table.getItem(highlightSelection).setBackground(0, new Color(display, 255, 255, 255));
-					highlightSelection++;
+					if(table.getItem(highlightSelection+1).getText().equals("")) highlightSelection+=2;
+					else highlightSelection++;
 					table.getItem(highlightSelection).setBackground(0, new Color(display, 255, 0, 0));
+					getSelection();
 				}
 				
 			}
 		});
 		button_1.setBounds(90, 10, 34, 34);
 		formToolkit.adapt(button_1, true, true);
+		
+		TableViewer tableViewer_1 = new TableViewer(shell, SWT.BORDER | SWT.FULL_SELECTION);
+		table_2 = tableViewer_1.getTable();
+		table_2.setBounds(572, 50, 253, 357);
+		formToolkit.paintBordersFor(table_2);
+		
+		item1 = new TableItem(table_2, SWT.NONE);
+	    item1.setText("Stack");
+	    boldFont = new Font( item1.getDisplay(), new FontData( "Arial", 12, SWT.BOLD ) );
+	    item1.setFont( boldFont );
+		
+		TableCursor tableCursor_1 = new TableCursor(table_2, SWT.NONE);
+		formToolkit.adapt(tableCursor_1);
+		formToolkit.paintBordersFor(tableCursor_1);
 		
 	}
 }

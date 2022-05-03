@@ -5,7 +5,8 @@ public class Method {
 	private int nameIndex;
 	private int descriptorIndex;
 	private int attributesCount;
-	public Method(int accessFlags, int nameIndex, int descriptorIndex, int attributesCount) {
+	private Attribute[] attributes;
+	public Method(int accessFlags, int nameIndex, int descriptorIndex, int attributesCount, Attribute[] attributes) {
 		setAccessFlags(accessFlags);
 		setNameIndex(nameIndex);
 		setDescriptorIndex(descriptorIndex);
@@ -35,5 +36,10 @@ public class Method {
 	public void setAttributesCount(int attributesCount) {
 		this.attributesCount = attributesCount;
 	}
-	
+	public Attribute[] getAttributes () {
+		return attributes;
+	}
+	public void setAttributes(Attribute[] attributes) {
+		this.attributes = attributes;
+	}
 }

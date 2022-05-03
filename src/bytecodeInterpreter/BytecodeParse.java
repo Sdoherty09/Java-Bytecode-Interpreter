@@ -13,12 +13,32 @@ public class BytecodeParse {
 	public static ConstantPool[] constantPool;
 	public String opcodeString="";
 	private OpcodeString opcodeStringify;
-	public static ArrayList<ArrayList<String>> opcodes;
+	public static ArrayList<String> opcodes;
+	private ArrayList<byte[]> codeBytes;
+	private ArrayList<Method> codeMethods;
 	
 	public BytecodeParse(byte[] bytecodeBytes) {
 		setBytecodeBytes(bytecodeBytes);
+		codeBytes = new ArrayList<byte[]>();
+		codeMethods = new ArrayList<Method>();
 	}
 	
+	public ArrayList<Method> getCodeMethods() {
+		return codeMethods;
+	}
+
+	public void setCodeMethods(ArrayList<Method> codeMethods) {
+		this.codeMethods = codeMethods;
+	}
+
+	public ArrayList<byte[]> getCodeBytes() {
+		return codeBytes;
+	}
+
+	public void setCodeBytes(ArrayList<byte[]> codeBytes) {
+		this.codeBytes = codeBytes;
+	}
+
 	public String getOpcodeString() {
 		return opcodeString;
 	}
@@ -147,11 +167,13 @@ public class BytecodeParse {
 				methodAttributes[j]=new Attribute();
 				if(byteToString(constantPool[methodAttributes[j].getNameIndex()-1].getBytes()).equals("Code"))
 				{
+					codeBytes.add((byte[])methodAttributes[j].getInfo()[3]);
 					opcodeStringify=new OpcodeString((byte[])methodAttributes[j].getInfo()[3], byteToString(constantPool[methodNameIndex-1].getBytes())+byteToString(constantPool[methodDescriptorIndex-1].getBytes()));
-					opcodeString = opcodeStringify.toString();
+					opcodeString += opcodeStringify.toString();
+					codeMethods.add(new Method(methodAccessFlags, methodNameIndex, methodDescriptorIndex, methodAttributesCount, methodAttributes));
 				}
 			}
-			
+			methods[index] = new Method(methodAccessFlags, methodNameIndex, methodDescriptorIndex, methodAttributesCount, methodAttributes);
 		}
 	}
 }
