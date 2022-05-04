@@ -54,6 +54,7 @@ public class Builder {
 	private Table table_3;
 	private HashMap<Integer, Integer> variables;
 	private int nextStep=-1;
+	private Text text_1;
 
 	private void getSelection() {
 		String selection = table.getItem(highlightSelection).getText();
@@ -87,7 +88,7 @@ public class Builder {
 		int num1;
 		int num2;
 		switch(selection) {
-		case "aload_0": case "iconst_0":
+		case "aload_0":
 			list=stack.push("0");
 			table_2.setItemCount(table_2.getItemCount()+1);
 			for(int index=1;index<table_2.getItemCount();index++)
@@ -96,50 +97,70 @@ public class Builder {
 				
 			}
 			break;
-		
+		case "iconst_0":
+			list=stack.push("0");
+			table_2.setItemCount(table_2.getItemCount()+1);
+			for(int index=1;index<table_2.getItemCount();index++)
+			{
+				table_2.getItem(index).setText(list.get(index-1));				
+			}
+			text_1.setText("Push the value 0 onto the stack");
+			break;
 		case "iconst_1":
 			list=stack.push("1");
 			table_2.setItemCount(table_2.getItemCount()+1);
 			for(int index=1;index<table_2.getItemCount();index++)
 			{
-				table_2.getItem(index).setText(list.get(index-1));
-				
+				table_2.getItem(index).setText(list.get(index-1));				
 			}
+			text_1.setText("Push the value 1 onto the stack");
 			break;	
 		case "istore_1":
 			item=new TableItem(table_3, SWT.NONE);
 			item.setText("Variable 1: "+table_2.getItem(1).getText());
 			variables.put(1, Integer.parseInt(table_2.getItem(1).getText()));
-			table_2.setItemCount(table_2.getItemCount()-1);
-			list=stack.pop();
-			for(int index=1;index<table_2.getItemCount();index++)
-			{
-				table_2.getItem(index).setText(list.get(index-1));
-				
-			}
-			break;
-		case "istore_2":
-			item=new TableItem(table_3, SWT.NONE);
-			item.setText("Variable 2: "+table_2.getItem(1).getText());
-			variables.put(2, Integer.parseInt(table_2.getItem(1).getText()));
+			text_1.setText("Pop the value "+table_2.getItem(1).getText()+" from the stack, storing it in variable 1");
 			table_2.setItemCount(table_2.getItemCount()-1);
 			list=stack.pop();
 			for(int index=1;index<table_2.getItemCount();index++)
 			{
 				table_2.getItem(index).setText(list.get(index-1));				
 			}
+			
+			break;
+		case "istore_2":
+			item=new TableItem(table_3, SWT.NONE);
+			item.setText("Variable 2: "+table_2.getItem(1).getText());
+			variables.put(2, Integer.parseInt(table_2.getItem(1).getText()));
+			text_1.setText("Pop the value "+table_2.getItem(1).getText()+" from the stack, storing it in variable 2");
+			table_2.setItemCount(table_2.getItemCount()-1);
+			list=stack.pop();
+			for(int index=1;index<table_2.getItemCount();index++)
+			{
+				table_2.getItem(index).setText(list.get(index-1));				
+			}
+			
 			break;
 		case "iload_2":
 			list=stack.push(Integer.toString(variables.get(2)));
 			table_2.setItemCount(table_2.getItemCount()+1);
 			for(int index=1;index<table_2.getItemCount();index++)
 			{
-				table_2.getItem(index).setText(list.get(index-1));
-				
+				table_2.getItem(index).setText(list.get(index-1));			
 			}
+			text_1.setText("Load the value "+variables.get(2)+" from variable 2, pushing it to the stack");
 			break;
 		
-		case "invokespecial": case "bipush":
+		case "bipush":
+			list=stack.push(parameter);
+			table_2.setItemCount(table_2.getItemCount()+1);
+			for(int index=1;index<table_2.getItemCount();index++)
+			{
+				table_2.getItem(index).setText(list.get(index-1));
+			}
+			text_1.setText("Push the byte "+parameter+" onto the stack");
+			break;
+		case "invokespecial":
 			list=stack.push(parameter);
 			table_2.setItemCount(table_2.getItemCount()+1);
 			for(int index=1;index<table_2.getItemCount();index++)
@@ -172,6 +193,7 @@ public class Builder {
 			{
 				table_2.getItem(index).setText(list.get(index-1));
 			}
+			text_1.setText("Check if "+num2+" is greather or equal to "+num1+", jumping to step "+parameter+" if so");
 			break;
 		case "iinc":
 			num1=Integer.parseInt(parameter.substring(0,parameter.indexOf(",")));
@@ -184,6 +206,7 @@ public class Builder {
 					table_3.getItem(index).setText("Variable "+num1+": "+variables.get(num1));
 				}
 			}
+			text_1.setText("Increment the value stored in variable "+num1+" by "+num2);
 			break;
 		case "goto":
 			int index=highlightSelection;
@@ -194,6 +217,7 @@ public class Builder {
 			}
 			table.getItem(index).setBackground(0, new Color(display, 0, 255, 0));
 			nextStep=index;
+			text_1.setText("Jump to step "+parameter);
 			break;
 		/*default:
 			System.out.println("test");
@@ -239,7 +263,7 @@ public class Builder {
 	 */
 	protected void createContents() {
 		shell = new Shell();
-		shell.setSize(1120, 484);
+		shell.setSize(1120, 607);
 		shell.setText("Bytecode Interpreter");
 		
 		variables = new HashMap<Integer, Integer>();
@@ -423,6 +447,11 @@ public class Builder {
 						table_2.getItem(index).setText("");
 					}
 					table_2.setItemCount(1);
+					for(int index=1;index<table_3.getItemCount();index++)
+					{
+						table_3.getItem(index).setText("");
+					}
+					table_3.setItemCount(1);
 				}
 				catch(IllegalArgumentException e1)
 				{
@@ -488,5 +517,9 @@ public class Builder {
 	    item1.setText("Variables");
 	    boldFont = new Font( item1.getDisplay(), new FontData( "Arial", 12, SWT.BOLD ) );
 	    item1.setFont( boldFont );
+	    
+	    text_1 = new Text(shell, SWT.BORDER | SWT.WRAP);
+	    text_1.setBounds(301, 413, 253, 110);
+	    formToolkit.adapt(text_1, true, true);
 	}
 }
