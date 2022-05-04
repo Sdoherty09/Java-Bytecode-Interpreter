@@ -25,6 +25,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 
+import java.util.HashMap;
+
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.custom.TableCursor;
@@ -49,10 +51,21 @@ public class Builder {
 	private BytecodeParse bytecodeParse;
 	int highlightSelection=1;
 	private Table table_2;
+	private Table table_3;
+	private HashMap<Integer, Integer> variables;
+	private int nextStep=-1;
 
 	private void getSelection() {
 		String selection = table.getItem(highlightSelection).getText();
 		selection = selection.substring(selection.indexOf(':')+2);
+		String parameter = "";
+		nextStep=-1;
+		if(selection.contains("\t"))
+		{
+			parameter=selection.substring(selection.lastIndexOf("\t")+2);
+			selection=selection.substring(0, selection.indexOf("\t"));
+			System.out.println(parameter);
+		}
 		ArrayList<TableItem> tableItems=new ArrayList<TableItem>();
 		for(int index=1;index<table_2.getItemCount();index++)
 		{
@@ -69,6 +82,10 @@ public class Builder {
 		TableItem tableItem;
 		System.out.println(selection);
 		String newContent;
+		TableItem item;
+		Display display = Display.getDefault();
+		int num1;
+		int num2;
 		switch(selection) {
 		case "aload_0": case "iconst_0":
 			list=stack.push("0");
@@ -90,10 +107,11 @@ public class Builder {
 			}
 			break;	
 		case "istore_1":
-			newContent="1 -> "+table_2.getItem(1).getText();
+			item=new TableItem(table_3, SWT.NONE);
+			item.setText("Variable 1: "+table_2.getItem(1).getText());
+			variables.put(1, Integer.parseInt(table_2.getItem(1).getText()));
+			table_2.setItemCount(table_2.getItemCount()-1);
 			list=stack.pop();
-			stack.setList(list);
-			list=stack.push(newContent);
 			for(int index=1;index<table_2.getItemCount();index++)
 			{
 				table_2.getItem(index).setText(list.get(index-1));
@@ -101,25 +119,18 @@ public class Builder {
 			}
 			break;
 		case "istore_2":
-			newContent="2 -> "+table_2.getItem(1).getText();
+			item=new TableItem(table_3, SWT.NONE);
+			item.setText("Variable 2: "+table_2.getItem(1).getText());
+			variables.put(2, Integer.parseInt(table_2.getItem(1).getText()));
+			table_2.setItemCount(table_2.getItemCount()-1);
 			list=stack.pop();
-			stack.setList(list);
-			list=stack.push(newContent);
 			for(int index=1;index<table_2.getItemCount();index++)
 			{
-				table_2.getItem(index).setText(list.get(index-1));
-				
+				table_2.getItem(index).setText(list.get(index-1));				
 			}
 			break;
 		case "iload_2":
-			String toFind="";
-			int j=1;
-			while(!toFind.contains("2 ->"))
-			{
-				toFind=table_2.getItem(j).getText();
-			}
-			toFind=toFind.substring(toFind.indexOf(">")+2);
-			list=stack.push(toFind);
+			list=stack.push(Integer.toString(variables.get(2)));
 			table_2.setItemCount(table_2.getItemCount()+1);
 			for(int index=1;index<table_2.getItemCount();index++)
 			{
@@ -128,13 +139,61 @@ public class Builder {
 			}
 			break;
 		
-		case "invokespecial	 java/lang/Object":
-			list=stack.push("java/lang/Object");
+		case "invokespecial": case "bipush":
+			list=stack.push(parameter);
 			table_2.setItemCount(table_2.getItemCount()+1);
 			for(int index=1;index<table_2.getItemCount();index++)
 			{
 				table_2.getItem(index).setText(list.get(index-1));
 			}
+			break;
+		case "if_icmpge":
+			num1 = Integer.parseInt(list.get(0));
+			list=stack.pop();
+			num2 = Integer.parseInt(list.get(0));
+			list=stack.pop();
+			if(num2>=num1)
+			{
+				int index=highlightSelection;
+				while(!table.getItem(index).getText().contains(parameter+":"))
+				{
+					index++;			
+				}
+				table.getItem(index).setBackground(0, new Color(display, 0, 255, 0));
+				nextStep=index;
+			}
+			else
+			{
+				nextStep=highlightSelection+1;
+				table.getItem(nextStep).setBackground(0, new Color(display, 0, 255, 0));
+			}
+			table_2.setItemCount(table_2.getItemCount()-2);
+			for(int index=1;index<table_2.getItemCount();index++)
+			{
+				table_2.getItem(index).setText(list.get(index-1));
+			}
+			break;
+		case "iinc":
+			num1=Integer.parseInt(parameter.substring(0,parameter.indexOf(",")));
+			num2=Integer.parseInt(parameter.substring(parameter.indexOf(" ")+1,parameter.length()));
+			variables.replace(num1, variables.get(num1)+num2);
+			for(int index=0;index<table_3.getItemCount();index++)
+			{
+				if(table_3.getItem(index).getText().contains("Variable "+num1))
+				{
+					table_3.getItem(index).setText("Variable "+num1+": "+variables.get(num1));
+				}
+			}
+			break;
+		case "goto":
+			int index=highlightSelection;
+			System.out.println("test");
+			while(!table.getItem(index).getText().contains(parameter+":"))
+			{
+				index--;			
+			}
+			table.getItem(index).setBackground(0, new Color(display, 0, 255, 0));
+			nextStep=index;
 			break;
 		/*default:
 			System.out.println("test");
@@ -180,8 +239,10 @@ public class Builder {
 	 */
 	protected void createContents() {
 		shell = new Shell();
-		shell.setSize(862, 484);
+		shell.setSize(1120, 484);
 		shell.setText("Bytecode Interpreter");
+		
+		variables = new HashMap<Integer, Integer>();
 		
 		Menu menu = new Menu(shell, SWT.BAR);
 		shell.setMenuBar(menu);
@@ -286,6 +347,11 @@ public class Builder {
 		btnNewButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				for(int index=1;index<table_2.getItemCount();index++)
+				{
+					table_2.getItem(index).setText("");
+				}
+				table_2.setItemCount(1);
 				ArrayList<TableItem> tableItems = null;
 				table.setItemCount(1);
 				OpcodeString opcodeString;
@@ -376,8 +442,16 @@ public class Builder {
 				{
 					Display display = Display.getDefault();
 					table.getItem(highlightSelection).setBackground(0, new Color(display, 255, 255, 255));
-					if(table.getItem(highlightSelection+1).getText().equals("")) highlightSelection+=2;
-					else highlightSelection++;
+					if(nextStep!=-1)
+					{
+						highlightSelection=nextStep;
+					}						
+					else
+					{
+						if(table.getItem(highlightSelection+1).getText().equals("")) highlightSelection+=2;
+						else highlightSelection++;
+					}
+					
 					table.getItem(highlightSelection).setBackground(0, new Color(display, 255, 0, 0));
 					getSelection();
 				}
@@ -401,5 +475,18 @@ public class Builder {
 		formToolkit.adapt(tableCursor_1);
 		formToolkit.paintBordersFor(tableCursor_1);
 		
+		TableViewer tableViewer_1_1 = new TableViewer(shell, SWT.BORDER | SWT.FULL_SELECTION);
+		table_3 = tableViewer_1_1.getTable();
+		table_3.setBounds(839, 50, 253, 357);
+		formToolkit.paintBordersFor(table_3);
+		
+		TableCursor tableCursor_1_1 = new TableCursor(table_3, SWT.NONE);
+		formToolkit.adapt(tableCursor_1_1);
+		formToolkit.paintBordersFor(tableCursor_1_1);
+		
+		item1 = new TableItem(table_3, SWT.NONE);
+	    item1.setText("Variables");
+	    boldFont = new Font( item1.getDisplay(), new FontData( "Arial", 12, SWT.BOLD ) );
+	    item1.setFont( boldFont );
 	}
 }

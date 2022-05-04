@@ -22,6 +22,7 @@ public class Stack {
 	
 	public ArrayList<String> push(String toPush) {
 		list.add(0, toPush);
+		setList(list);
 		return list;
 	}
 	public ArrayList<String> pop() {
@@ -30,7 +31,7 @@ public class Stack {
 		{
 			temp.add(list.get(index));
 		}
-		System.out.println(list.get(0));
+		setList(temp);
 		return temp;
 	}
 }
