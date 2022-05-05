@@ -87,10 +87,15 @@ public class OpcodeString {
 				System.out.println((bytes[index+1])+" "+bytes[index+2]);
 				index+=2;
 				break;
+			case 187:
+				temp.add(index+": new\t " +byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[BytecodeParse.constantPool[((bytes[index+1] << 8)+bytes[index+2])-1].getInfo()[0]-1].getInfo()[0]-1].getBytes()));
+				index+=2;
+				break;
 			default:
 				temp.add(""+(bytes[index] & 0xff));
 				break;
 			}
+			System.out.println(temp.get(temp.size()-1));
 		}
 		return temp;
 	}

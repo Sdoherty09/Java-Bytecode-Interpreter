@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 public class Attribute {
 	private int nameIndex;
@@ -25,8 +26,10 @@ public class Attribute {
 	public Attribute() throws IOException {
 		Object attributeInfo[] = null;
 		int attributeNameIndex=BytecodeParse.inputStream.readUnsignedShort();
+		System.out.println("index: "+attributeNameIndex);
 		int attributeLength=BytecodeParse.inputStream.readInt();
-		//System.out.println("switch: "+byteToString(BytecodeParse.constantPool[attributeNameIndex-1].getBytes()));
+		//System.out.println(attributeLength);
+		System.out.println("switch: "+byteToString(BytecodeParse.constantPool[attributeNameIndex-1].getBytes()));
 		switch(byteToString(BytecodeParse.constantPool[attributeNameIndex-1].getBytes()))
 		{
 		case "ConstantValue":
@@ -62,6 +65,7 @@ public class Attribute {
 				int codeAttributeNameIndex=BytecodeParse.inputStream.readUnsignedShort();
 				int codeAttributeLength=BytecodeParse.inputStream.readInt();
 				Object codeAttributeInfo[] = null;
+				System.out.println("code thing: "+byteToString(BytecodeParse.constantPool[codeAttributeNameIndex-1].getBytes()));
 				switch(byteToString(BytecodeParse.constantPool[codeAttributeNameIndex-1].getBytes()))
 				{
 				case "LineNumberTable":
@@ -107,12 +111,16 @@ public class Attribute {
 					codeAttributeInfo[1]=localVariableTypes;
 					break;
 				case "StackMapTable":
-					codeAttributeInfo=new Object[2];
-					codeAttributeInfo[0]=BytecodeParse.inputStream.readInt();
-					for(int l=0;l<(int)codeAttributeInfo[0];l++)
+					//System.out.println("stack map: "+byteToString(BytecodeParse.constantPool[codeAttributeNameIndex-1].getBytes()));
+					codeAttributeInfo=new Object[3];
+					codeAttributeInfo[0]=BytecodeParse.inputStream.readShort();
+					System.out.println("length: "+codeAttributeLength);
+					System.out.println("entries: "+codeAttributeInfo[0]);
+					for(int l=0;l<codeAttributeLength-2;l++)
 					{
-						
+						BytecodeParse.inputStream.readUnsignedByte();
 					}
+					//System.out.println("missing "+BytecodeParse.inputStream.readUnsignedByte());
 				}
 			}
 			break;
@@ -138,6 +146,11 @@ public class Attribute {
 	}
 	public void setInfo(Object[] info) {
 		this.info = info;
+	}
+
+	@Override
+	public String toString() {
+		return "Attribute [nameIndex=" + nameIndex + ", length=" + length + ", info=" + Arrays.toString(info) + "]";
 	}
 	
 	

@@ -77,6 +77,7 @@ public class BytecodeParse {
 	}
 	public void parse() throws IOException {
 		inputStream = new DataInputStream(new ByteArrayInputStream(bytecodeBytes));
+		int accessFlags=0;
 		int magic=inputStream.readInt();
 		int minorVersion=inputStream.readUnsignedShort();
 		int majorVersion=inputStream.readUnsignedShort();
@@ -88,6 +89,7 @@ public class BytecodeParse {
 		for(int index=0;index<constantPoolCount-1;index++)
 		{
 			tag=inputStream.readUnsignedByte();
+			System.out.println(index+": "+tag);
 			switch(tag)
 			{
 			case 7: case 8: case 16:
@@ -115,19 +117,30 @@ public class BytecodeParse {
 				{
 					bytes[j]=(byte)inputStream.readUnsignedByte();
 				}
+				//System.out.println(index);
+				//System.out.println(byteToString(bytes));
 				break;
 			case 15:
 				info=new int[2];
 				info[0]=inputStream.readUnsignedByte();
 				info[1]=inputStream.readUnsignedShort();
 				break;
+			case 0:
+				accessFlags=inputStream.readUnsignedByte();
+				break;
 			}
 			if (tag==1) constantPool[index] = new ConstantPool(tag, bytes);
 			else constantPool[index] = new ConstantPool(tag, info);
 		}
-		int accessFlags=inputStream.readUnsignedShort();
+		if(accessFlags==0)
+		{
+			accessFlags=inputStream.readUnsignedShort();
+		}
+		
+		System.out.println(accessFlags);
 		int thisClass=inputStream.readUnsignedShort();
-		//System.out.println("this class: "+byteToString(constantPool[constantPool[thisClass-1].getInfo()[0]-1].getBytes()));
+		System.out.println(thisClass);
+		System.out.println("this class: "+byteToString(constantPool[constantPool[thisClass-1].getInfo()[0]-1].getBytes()));
 		int superClass=inputStream.readUnsignedShort();
 		int interfacesCount=inputStream.readUnsignedShort();
 		ConstantPool interfaces[] = new ConstantPool[interfacesCount];
@@ -153,14 +166,17 @@ public class BytecodeParse {
 			}
 		}
 		int methodsCount=inputStream.readUnsignedShort();
+		System.out.println("methods count: "+methodsCount);
 		Method[] methods=new Method[methodsCount];
 		for(int index=0;index<methodsCount;index++)
 		{
 			int methodAccessFlags=inputStream.readUnsignedShort();
-			int methodNameIndex=inputStream.readUnsignedShort();
-			int methodDescriptorIndex=inputStream.readUnsignedShort();
+			int methodNameIndex=inputStream.readUnsignedShort(); //correct prob
+			int methodDescriptorIndex=inputStream.readUnsignedShort(); //not??
 			int methodAttributesCount=inputStream.readUnsignedShort();
-			//System.out.println("attribute count: " + byteToString(constantPool[inputStream.readUnsignedShort()-1].getBytes()));
+			System.out.println("ACCESS FLAG: "+methodAccessFlags);
+			System.out.println("name: " + methodNameIndex);
+			System.out.println("method count: "+methodAttributesCount);
 			Attribute[] methodAttributes=new Attribute[methodAttributesCount];
 			for(int j=0;j<methodAttributesCount;j++)
 			{

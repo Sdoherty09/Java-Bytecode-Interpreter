@@ -56,7 +56,19 @@ public class Builder {
 	private int nextStep=-1;
 	private Text text_1;
 
-	private void getSelection() {
+	private String byteToString(byte[] bytes) throws UnsupportedEncodingException
+	{
+		ByteBuffer buffer = ByteBuffer.allocate(bytes.length);
+		for(int index=0;index<bytes.length;index++)
+		buffer.put(bytes[index]);
+		String newContent = null;
+		if (buffer.hasArray()) {
+	        newContent = new String(buffer.array(), "UTF-8");
+	    }
+		return newContent;
+	}
+	
+	private void getSelection() throws UnsupportedEncodingException {
 		String selection = table.getItem(highlightSelection).getText();
 		selection = selection.substring(selection.indexOf(':')+2);
 		String parameter = "";
@@ -89,12 +101,25 @@ public class Builder {
 		int num2;
 		switch(selection) {
 		case "aload_0":
+			Method method = bytecodeParse.getCodeMethods().get(0);
+			for(int index=0;index<method.getAttributesCount();index++)
+			{
+				System.out.println(method);
+				/*if(method.getAttributes()!=null)
+				{
+					System.out.println("test");
+					if(byteToString(BytecodeParse.constantPool[method.getAttributes()[index].getNameIndex()-1].getBytes()).equals("LocalVariableTable"))
+					{
+						
+					}
+				}*/
+				
+			}
 			list=stack.push("0");
 			table_2.setItemCount(table_2.getItemCount()+1);
 			for(int index=1;index<table_2.getItemCount();index++)
 			{
-				table_2.getItem(index).setText(list.get(index-1));
-				
+				table_2.getItem(index).setText(list.get(index-1));			
 			}
 			break;
 		case "iconst_0":
@@ -482,7 +507,12 @@ public class Builder {
 					}
 					
 					table.getItem(highlightSelection).setBackground(0, new Color(display, 255, 0, 0));
-					getSelection();
+					try {
+						getSelection();
+					} catch (UnsupportedEncodingException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
 				}
 				
 			}

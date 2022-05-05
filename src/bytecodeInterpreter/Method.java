@@ -1,5 +1,7 @@
 package bytecodeInterpreter;
 
+import java.util.Arrays;
+
 public class Method {
 	private int accessFlags;
 	private int nameIndex;
@@ -42,4 +44,12 @@ public class Method {
 	public void setAttributes(Attribute[] attributes) {
 		this.attributes = attributes;
 	}
+	@Override
+	public String toString() {
+		return "Method [accessFlags=" + accessFlags + ", nameIndex=" + nameIndex + ", descriptorIndex="
+				+ descriptorIndex + ", attributesCount=" + attributesCount + ", attributes="
+				+ Arrays.toString(attributes) + "]";
+	}
+	
+	
 }
