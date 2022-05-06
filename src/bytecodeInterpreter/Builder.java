@@ -33,12 +33,15 @@ import org.eclipse.swt.custom.TableCursor;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.wb.swt.SWTResourceManager;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.List;
 
 public class Builder {
@@ -67,7 +70,6 @@ public class Builder {
 	    }
 		return newContent;
 	}
-	
 	private void getSelection() throws UnsupportedEncodingException {
 		String selection = table.getItem(highlightSelection).getText();
 		selection = selection.substring(selection.indexOf(':')+2);
@@ -372,10 +374,49 @@ public class Builder {
 		table.addListener(SWT.EraseItem, new Listener() {
 		    @Override
 		    public void handleEvent(Event event) {
-		        event.detail &= ~SWT.HIGH;
+				event.detail &= ~SWT.SELECTED;
 		    }
 		});
-		
+		table.addListener(SWT.MouseDown, new Listener(){
+			@Override
+		    public void handleEvent(Event event) {
+				event.detail &= ~SWT.FOCUSED;
+				event.detail &= ~SWT.SELECTED;
+				System.out.println("testing");
+				Point pt = new Point(event.x, event.y);
+	            TableItem item = table.getItem(pt);
+	            Display display = Display.getDefault();
+				item.setBackground(0, new Color(display, 255, 0, 0));
+				TableItem selected=table.getItem(highlightSelection);
+					while(selected!=item)
+					{
+							if(table.getItemCount()!=1&&highlightSelection<table.getItemCount()-2)
+							{
+								display = Display.getDefault();
+								table.getItem(highlightSelection).setBackground(0, new Color(display, 255, 255, 255));
+								if(nextStep!=-1)
+								{
+									highlightSelection=nextStep;
+								}						
+								else
+								{
+									if(table.getItem(highlightSelection+1).getText().equals("")) highlightSelection+=2;
+									else highlightSelection++;
+								}
+								
+								table.getItem(highlightSelection).setBackground(0, new Color(display, 255, 0, 0));
+								try {
+									getSelection();
+								} catch (UnsupportedEncodingException e1) {
+									// TODO Auto-generated catch block
+									e1.printStackTrace();
+								}
+							}
+							selected=table.getItem(highlightSelection);
+					}
+		    }
+		});
+		table.deselect(highlightSelection);
 		TableCursor tableCursor = new TableCursor(table, SWT.NONE);
 		formToolkit.adapt(tableCursor);
 		formToolkit.paintBordersFor(tableCursor);
