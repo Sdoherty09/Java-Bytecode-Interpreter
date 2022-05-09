@@ -70,6 +70,15 @@ public class Builder {
 	    }
 		return newContent;
 	}
+	private boolean canTraverseTo(TableItem start, TableItem end)
+	{
+		for(int index=0;index<table.getItemCount();index++)
+		{
+			if(table.getItem(index)==end) return false;
+			if(table.getItem(index)==start) return true;
+		}
+		return false;
+	}
 	private void getSelection() throws UnsupportedEncodingException {
 		String selection = table.getItem(highlightSelection).getText();
 		selection = selection.substring(selection.indexOf(':')+2);
@@ -119,6 +128,7 @@ public class Builder {
 			}
 			list=stack.push("0");
 			table_2.setItemCount(table_2.getItemCount()+1);
+			table_2.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
 			for(int index=1;index<table_2.getItemCount();index++)
 			{
 				table_2.getItem(index).setText(list.get(index-1));			
@@ -131,6 +141,7 @@ public class Builder {
 			{
 				table_2.getItem(index).setText(list.get(index-1));				
 			}
+			table_2.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
 			text_1.setText("Push the value 0 onto the stack");
 			break;
 		case "iconst_1":
@@ -140,23 +151,22 @@ public class Builder {
 			{
 				table_2.getItem(index).setText(list.get(index-1));				
 			}
+			table_2.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
 			text_1.setText("Push the value 1 onto the stack");
 			break;	
 		case "istore_1":
 			item=new TableItem(table_3, SWT.NONE);
+			item.setBackground(0, new Color(display, 210, 0, 120));
 			item.setText("Variable 1: "+table_2.getItem(1).getText());
 			variables.put(1, Integer.parseInt(table_2.getItem(1).getText()));
 			text_1.setText("Pop the value "+table_2.getItem(1).getText()+" from the stack, storing it in variable 1");
 			table_2.setItemCount(table_2.getItemCount()-1);
 			list=stack.pop();
-			for(int index=1;index<table_2.getItemCount();index++)
-			{
-				table_2.getItem(index).setText(list.get(index-1));				
-			}
 			
 			break;
 		case "istore_2":
 			item=new TableItem(table_3, SWT.NONE);
+			item.setBackground(0, new Color(display, 210, 0, 120));
 			item.setText("Variable 2: "+table_2.getItem(1).getText());
 			variables.put(2, Integer.parseInt(table_2.getItem(1).getText()));
 			text_1.setText("Pop the value "+table_2.getItem(1).getText()+" from the stack, storing it in variable 2");
@@ -175,6 +185,7 @@ public class Builder {
 			{
 				table_2.getItem(index).setText(list.get(index-1));			
 			}
+			table_2.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
 			text_1.setText("Load the value "+variables.get(2)+" from variable 2, pushing it to the stack");
 			break;
 		
@@ -185,6 +196,7 @@ public class Builder {
 			{
 				table_2.getItem(index).setText(list.get(index-1));
 			}
+			table_2.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
 			text_1.setText("Push the byte "+parameter+" onto the stack");
 			break;
 		case "invokespecial":
@@ -194,6 +206,7 @@ public class Builder {
 			{
 				table_2.getItem(index).setText(list.get(index-1));
 			}
+			table_2.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
 			break;
 		case "if_icmpge":
 			num1 = Integer.parseInt(list.get(0));
@@ -231,9 +244,28 @@ public class Builder {
 				if(table_3.getItem(index).getText().contains("Variable "+num1))
 				{
 					table_3.getItem(index).setText("Variable "+num1+": "+variables.get(num1));
+					table_3.getItem(index).setBackground(0, new Color(display, 210, 0, 120));
 				}
 			}
 			text_1.setText("Increment the value stored in variable "+num1+" by "+num2);
+			break;
+		case "getstatic":
+			list=stack.push(parameter);
+			table_2.setItemCount(table_2.getItemCount()+1);
+			for(int index=1;index<table_2.getItemCount();index++)
+			{
+				table_2.getItem(index).setText(list.get(index-1));
+			}
+			table_2.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
+			break;
+		case "ldc":
+			list=stack.push(parameter);
+			table_2.setItemCount(table_2.getItemCount()+1);
+			for(int index=1;index<table_2.getItemCount();index++)
+			{
+				table_2.getItem(index).setText(list.get(index-1));
+			}
+			table_2.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
 			break;
 		case "goto":
 			int index=highlightSelection;
@@ -246,6 +278,7 @@ public class Builder {
 			nextStep=index;
 			text_1.setText("Jump to step "+parameter);
 			break;
+		
 		/*default:
 			System.out.println("test");
 			for(int index=1;index<table_2.getItemCount();index++)
@@ -275,6 +308,13 @@ public class Builder {
 	 */
 	public void open() {
 		Display display = Display.getDefault();
+		//final File f = new File(bytecodeInterpreter.Builder.class.getProtectionDomain().getCodeSource().getLocation().getPath());
+		try {
+			System.out.println(Object.class.getResource("Object.class").getContent());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		createContents();
 		shell.open();
 		shell.layout();
@@ -309,8 +349,20 @@ public class Builder {
 		MenuItem mntmEdit = new MenuItem(menu, SWT.NONE);
 		mntmEdit.setText("Edit");
 		
-		MenuItem mntmView = new MenuItem(menu, SWT.NONE);
+		MenuItem mntmView = new MenuItem(menu, SWT.CASCADE);
 		mntmView.setText("View");
+		
+		Menu menu_2 = new Menu(mntmView);
+		mntmView.setMenu(menu_2);
+		
+		MenuItem mntmCode = new MenuItem(menu_2, SWT.NONE);
+		mntmCode.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				//ViewCode viewCode=new ViewCode(shell, SWT.NONE);
+			}
+		});
+		mntmCode.setText("Code");
 		
 		MenuItem mntmNewItem = new MenuItem(menu, SWT.NONE);
 		mntmNewItem.setText("Run");
@@ -384,36 +436,65 @@ public class Builder {
 				event.detail &= ~SWT.SELECTED;
 				System.out.println("testing");
 				Point pt = new Point(event.x, event.y);
+				System.out.println("X: "+pt.x);
 	            TableItem item = table.getItem(pt);
-	            Display display = Display.getDefault();
-				item.setBackground(0, new Color(display, 255, 0, 0));
-				TableItem selected=table.getItem(highlightSelection);
-					while(selected!=item)
-					{
-							if(table.getItemCount()!=1&&highlightSelection<table.getItemCount()-2)
+	            try
+	            {
+	            	if(item.getText()!="")
+		            {
+		            	TableItem selected=table.getItem(highlightSelection);
+			            
+						
+						if(canTraverseTo(selected, item))
+						{
+							Display display = Display.getDefault();
+							item.setBackground(0, new Color(display, 255, 0, 0));
+							while(selected!=item)
 							{
-								display = Display.getDefault();
-								table.getItem(highlightSelection).setBackground(0, new Color(display, 255, 255, 255));
-								if(nextStep!=-1)
+								for(int index=0;index<table_2.getItemCount();index++)
 								{
-									highlightSelection=nextStep;
-								}						
-								else
+									table_2.getItem(index).setBackground(0, new Color(display, 255, 255, 255));
+								}
+								for(int index=0;index<table_3.getItemCount();index++)
 								{
-									if(table.getItem(highlightSelection+1).getText().equals("")) highlightSelection+=2;
-									else highlightSelection++;
+									table_3.getItem(index).setBackground(0, new Color(display, 255, 255, 255));
+								}	
+								if(table.getItemCount()!=1&&highlightSelection<table.getItemCount()-2)
+								{
+									display = Display.getDefault();
+									table.getItem(highlightSelection).setBackground(0, new Color(display, 255, 255, 255));
+									if(nextStep!=-1)
+									{
+										highlightSelection=nextStep;
+									}						
+									else
+									{
+										if(table.getItem(highlightSelection+1).getText().equals("")) highlightSelection+=2;
+										else highlightSelection++;
+									}
+									
+									table.getItem(highlightSelection).setBackground(0, new Color(display, 255, 0, 0));
+									try {
+										getSelection();
+									} catch (UnsupportedEncodingException e1) {
+										// TODO Auto-generated catch block
+										e1.printStackTrace();
+									}
 								}
-								
-								table.getItem(highlightSelection).setBackground(0, new Color(display, 255, 0, 0));
-								try {
-									getSelection();
-								} catch (UnsupportedEncodingException e1) {
-									// TODO Auto-generated catch block
-									e1.printStackTrace();
-								}
+								selected=table.getItem(highlightSelection);
 							}
-							selected=table.getItem(highlightSelection);
-					}
+						}
+						else
+						{
+							System.out.println("test");
+						}
+		            }
+	            }
+	            catch(NullPointerException e)
+	            {
+	            	e.printStackTrace();
+	            }
+	            
 		    }
 		});
 		table.deselect(highlightSelection);
@@ -533,9 +614,18 @@ public class Builder {
 		button_1.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				Display display = Display.getDefault();
+				for(int index=0;index<table_2.getItemCount();index++)
+				{
+					table_2.getItem(index).setBackground(0, new Color(display, 255, 255, 255));
+				}
+				for(int index=0;index<table_3.getItemCount();index++)
+				{
+					table_3.getItem(index).setBackground(0, new Color(display, 255, 255, 255));
+				}
 				if(table.getItemCount()!=1&&highlightSelection<table.getItemCount()-2)
 				{
-					Display display = Display.getDefault();
+					
 					table.getItem(highlightSelection).setBackground(0, new Color(display, 255, 255, 255));
 					if(nextStep!=-1)
 					{

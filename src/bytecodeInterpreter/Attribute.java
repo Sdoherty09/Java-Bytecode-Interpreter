@@ -72,6 +72,7 @@ public class Attribute {
 					codeAttributeInfo = new Object[2];
 					codeAttributeInfo[0]=BytecodeParse.inputStream.readUnsignedShort();
 					LineNumber[] lineNumbers=new LineNumber[(int) codeAttributeInfo[0]];
+					System.out.println("length: "+codeAttributeInfo[0]);
 					for(int l=0;l<(int)codeAttributeInfo[0];l++)
 					{
 						int startPc=BytecodeParse.inputStream.readUnsignedShort();
@@ -82,7 +83,7 @@ public class Attribute {
 					break;
 				case "LocalVariableTable":
 					codeAttributeInfo=new Object[2];
-					codeAttributeInfo[0]=BytecodeParse.inputStream.readInt();
+					codeAttributeInfo[0]=BytecodeParse.inputStream.readUnsignedShort();
 					LocalVariable[] localVariables=new LocalVariable[(int)codeAttributeInfo[0]];
 					for(int l=0;l<(int)codeAttributeInfo[0];l++)
 					{
@@ -121,7 +122,28 @@ public class Attribute {
 						BytecodeParse.inputStream.readUnsignedByte();
 					}
 					//System.out.println("missing "+BytecodeParse.inputStream.readUnsignedByte());
+					break;
+				default:
+					for(int l=0;l<codeAttributeLength;l++)
+					{
+						BytecodeParse.inputStream.readUnsignedByte();
+					}
+					break;
 				}
+			}
+			break;
+		case "LineNumberTable":
+			attributeInfo = new Object[2];
+			//attributeInfo[0]=BytecodeParse.inputStream.readUnsignedShort();
+			for(int l=0;l<attributeLength;l++)
+			{
+				BytecodeParse.inputStream.readUnsignedByte();
+			}
+			break;
+		default:
+			for(int l=0;l<attributeLength;l++)
+			{
+				BytecodeParse.inputStream.readUnsignedByte();
 			}
 			break;
 		}

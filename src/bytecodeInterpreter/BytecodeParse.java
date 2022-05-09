@@ -76,7 +76,8 @@ public class BytecodeParse {
 		return newContent;
 	}
 	public void parse() throws IOException {
-		inputStream = new DataInputStream(new ByteArrayInputStream(bytecodeBytes));
+		inputStream = new DataInputStream((ByteArrayInputStream)Object.class.getResource("Object.class").getContent());
+		//inputStream = new DataInputStream(new ByteArrayInputStream(bytecodeBytes));
 		int accessFlags=0;
 		int magic=inputStream.readInt();
 		int minorVersion=inputStream.readUnsignedShort();
@@ -107,6 +108,7 @@ public class BytecodeParse {
 				break;
 			case 5: case 6:
 				info=new int[2];
+				index++;
 				info[0]=inputStream.readInt();
 				info[1]=inputStream.readInt();
 				break;
@@ -128,6 +130,9 @@ public class BytecodeParse {
 			case 0:
 				accessFlags=inputStream.readUnsignedByte();
 				break;
+			default:
+				System.out.println("NOT HERE");
+				break;
 			}
 			if (tag==1) constantPool[index] = new ConstantPool(tag, bytes);
 			else constantPool[index] = new ConstantPool(tag, info);
@@ -139,7 +144,7 @@ public class BytecodeParse {
 		
 		System.out.println(accessFlags);
 		int thisClass=inputStream.readUnsignedShort();
-		System.out.println(thisClass);
+		System.out.println("class num: "+thisClass);
 		System.out.println("this class: "+byteToString(constantPool[constantPool[thisClass-1].getInfo()[0]-1].getBytes()));
 		int superClass=inputStream.readUnsignedShort();
 		int interfacesCount=inputStream.readUnsignedShort();

@@ -51,11 +51,22 @@ public class OpcodeString {
 				index+=2;
 				break;
 			case 18:
-				temp.add(index+ ": ldc\t "+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[bytes[index+1]-1].getInfo()[0]-1].getBytes()));
+				if(BytecodeParse.constantPool[(bytes[index+1] & 0xff)-1].getTag()==1)
+				{
+					temp.add(index+ ": ldc\t String "+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[(bytes[index+1] & 0xff)-1].getInfo()[0]-1].getBytes()));
+				}
+				else
+				{
+					temp.add(index+ ": ldc\t int "+BytecodeParse.constantPool[(bytes[index+1] & 0xff)-1].getInfo()[0]);
+				}
 				index++;
 				break;
 			case 182:
 				temp.add(index+ ": invokevirtual\t "+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[BytecodeParse.constantPool[((bytes[index+1] << 8)+bytes[index+2])-1].getInfo()[0]-1].getInfo()[0]-1].getBytes()));
+				index+=2;
+				break;
+			case 184:
+				temp.add(index+": invokespecial\t " +byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[BytecodeParse.constantPool[((bytes[index+1] << 8)+bytes[index+2])-1].getInfo()[0]-1].getInfo()[0]-1].getBytes()));
 				index+=2;
 				break;
 			case 3:
@@ -88,7 +99,7 @@ public class OpcodeString {
 				index+=2;
 				break;
 			case 187:
-				temp.add(index+": new\t " +byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[BytecodeParse.constantPool[((bytes[index+1] << 8)+bytes[index+2])-1].getInfo()[0]-1].getInfo()[0]-1].getBytes()));
+				temp.add(index+": new\t " +byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[((bytes[index+1] & 0xff << 8)+bytes[index+2] & 0xff)-1].getInfo()[0]-1].getBytes()));
 				index+=2;
 				break;
 			default:
