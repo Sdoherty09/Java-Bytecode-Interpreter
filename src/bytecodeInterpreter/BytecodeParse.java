@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class BytecodeParse {
 	private byte[] bytecodeBytes;
@@ -16,13 +17,29 @@ public class BytecodeParse {
 	public static ArrayList<String> opcodes;
 	private ArrayList<byte[]> codeBytes;
 	private ArrayList<Method> codeMethods;
+	private HashMap<byte[], String> classNames;
 	
 	public BytecodeParse(byte[] bytecodeBytes) {
 		setBytecodeBytes(bytecodeBytes);
 		codeBytes = new ArrayList<byte[]>();
 		codeMethods = new ArrayList<Method>();
+		classNames = new HashMap<byte[], String>();
 	}
 	
+	
+	
+	public HashMap<byte[], String> getClassNames() {
+		return classNames;
+	}
+
+
+
+	public void setClassNames(HashMap<byte[], String> classNames) {
+		this.classNames = classNames;
+	}
+
+
+
 	public ArrayList<Method> getCodeMethods() {
 		return codeMethods;
 	}
@@ -76,8 +93,8 @@ public class BytecodeParse {
 		return newContent;
 	}
 	public void parse() throws IOException {
-		inputStream = new DataInputStream((ByteArrayInputStream)Object.class.getResource("Object.class").getContent());
-		//inputStream = new DataInputStream(new ByteArrayInputStream(bytecodeBytes));
+		//inputStream = new DataInputStream((ByteArrayInputStream)Object.class.getResource("Object.class").getContent());
+		inputStream = new DataInputStream(new ByteArrayInputStream(bytecodeBytes));
 		int accessFlags=0;
 		int magic=inputStream.readInt();
 		int minorVersion=inputStream.readUnsignedShort();
@@ -189,6 +206,7 @@ public class BytecodeParse {
 				if(byteToString(constantPool[methodAttributes[j].getNameIndex()-1].getBytes()).equals("Code"))
 				{
 					codeBytes.add((byte[])methodAttributes[j].getInfo()[3]);
+					classNames.put((byte[])methodAttributes[j].getInfo()[3], byteToString(constantPool[methodNameIndex-1].getBytes())+byteToString(constantPool[methodDescriptorIndex-1].getBytes()));
 					opcodeStringify=new OpcodeString((byte[])methodAttributes[j].getInfo()[3], byteToString(constantPool[methodNameIndex-1].getBytes())+byteToString(constantPool[methodDescriptorIndex-1].getBytes()));
 					opcodeString += opcodeStringify.toString();
 					codeMethods.add(new Method(methodAccessFlags, methodNameIndex, methodDescriptorIndex, methodAttributesCount, methodAttributes));

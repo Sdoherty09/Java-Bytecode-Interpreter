@@ -51,7 +51,8 @@ public class OpcodeString {
 				index+=2;
 				break;
 			case 18:
-				if(BytecodeParse.constantPool[(bytes[index+1] & 0xff)-1].getTag()==1)
+				System.out.println("bytes: "+bytes[index+1]);
+				if(BytecodeParse.constantPool[(bytes[index+1] & 0xff)-1].getTag()==8)
 				{
 					temp.add(index+ ": ldc\t String "+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[(bytes[index+1] & 0xff)-1].getInfo()[0]-1].getBytes()));
 				}
@@ -66,7 +67,7 @@ public class OpcodeString {
 				index+=2;
 				break;
 			case 184:
-				temp.add(index+": invokespecial\t " +byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[BytecodeParse.constantPool[((bytes[index+1] << 8)+bytes[index+2])-1].getInfo()[0]-1].getInfo()[0]-1].getBytes()));
+				temp.add(index+": invokestatic\t " +byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[BytecodeParse.constantPool[((bytes[index+1] << 8)+bytes[index+2])-1].getInfo()[0]-1].getInfo()[0]-1].getBytes())+":"+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[BytecodeParse.constantPool[((bytes[index+1] << 8)+bytes[index+2])-1].getInfo()[1]-1].getInfo()[1]-1].getBytes()));
 				index+=2;
 				break;
 			case 3:
@@ -101,6 +102,31 @@ public class OpcodeString {
 			case 187:
 				temp.add(index+": new\t " +byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[((bytes[index+1] & 0xff << 8)+bytes[index+2] & 0xff)-1].getInfo()[0]-1].getBytes()));
 				index+=2;
+				break;
+			case 26:
+				temp.add(index+": iload_0");
+				break;
+			case 5:
+				temp.add(index+ ": iconst_0");
+				break;
+			case 112:
+				temp.add(index+ ": irem");
+				break;
+			case 154:
+				temp.add(index+": ifne\t "+(index+(short)((bytes[index+1]& 0xff << 8)+bytes[index+2]& 0xff)));
+				index+=2;
+				break;
+			case 4:
+				temp.add(index+ ": iconst_1");
+				break;
+			case 172:
+				temp.add(index+ ": ireturn");
+				break;
+			case 27:
+				temp.add(index+": iload_1");
+				break;
+			case 87:
+				temp.add(index+": pop");
 				break;
 			default:
 				temp.add(""+(bytes[index] & 0xff));

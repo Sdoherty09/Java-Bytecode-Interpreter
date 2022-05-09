@@ -178,6 +178,16 @@ public class Builder {
 			}
 			
 			break;
+		case "iload_1":
+			list=stack.push(Integer.toString(variables.get(1)));
+			table_2.setItemCount(table_2.getItemCount()+1);
+			for(int index=1;index<table_2.getItemCount();index++)
+			{
+				table_2.getItem(index).setText(list.get(index-1));			
+			}
+			table_2.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
+			text_1.setText("Load the value "+variables.get(1)+" from variable 1, pushing it to the stack");
+			break;
 		case "iload_2":
 			list=stack.push(Integer.toString(variables.get(2)));
 			table_2.setItemCount(table_2.getItemCount()+1);
@@ -533,18 +543,22 @@ public class Builder {
 					ArrayList<byte[]> codeBytes=bytecodeParse.getCodeBytes();
 					for(int index=0;index<codeBytes.size();index++)
 					{
-						opcodeString=new OpcodeString(codeBytes.get(index));
-						
-						ArrayList<String> tableBytecode = opcodeString.stringify();
-						for(int j=0;j<tableBytecode.size();j++)
+						if(bytecodeParse.getClassNames().get(codeBytes.get(index)).contains("main"))
 						{
+							opcodeString=new OpcodeString(codeBytes.get(index));
+							
+							ArrayList<String> tableBytecode = opcodeString.stringify();
+							for(int j=0;j<tableBytecode.size();j++)
+							{
+								tableItem=new TableItem(table, SWT.NONE);
+								tableItem.setText(tableBytecode.get(j));
+								tableItems.add(tableItem);
+							}
 							tableItem=new TableItem(table, SWT.NONE);
-							tableItem.setText(tableBytecode.get(j));
+							tableItem.setText("");
 							tableItems.add(tableItem);
 						}
-						tableItem=new TableItem(table, SWT.NONE);
-						tableItem.setText("");
-						tableItems.add(tableItem);
+						
 					}
 					/*ArrayList<ArrayList<String>> opcodes=BytecodeParse.opcodes;
 					tableItems = new ArrayList<TableItem>();
