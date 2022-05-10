@@ -73,14 +73,34 @@ public class OpcodeString {
 			case 3:
 				temp.add(index+ ": iconst_0");
 				break;
+			case 76:
+				temp.add(index+": astore_1");
+				break;
+			case 77:
+				temp.add(index+": astore_2");
+				break;
 			case 60:
 				temp.add(index+": istore_1");
 				break;
 			case 61:
 				temp.add(index+": istore_2");
 				break;
+			case 54:
+				temp.add(index+": istore\t "+bytes[index+1]);
+				index++;
+				break;
+			case 21:
+				temp.add(index+": iload\t "+bytes[index+1]);
+				index++;
+				break;
 			case 28:
 				temp.add(index+": iload_2");
+				break;
+			case 20: //TODO: finish
+				temp.add(index+": ldc2_w\t " );
+				break;
+			case 135:
+				temp.add(index+": i2d");
 				break;
 			case 16:
 				temp.add(index+": bipush\t "+bytes[index+1]);
