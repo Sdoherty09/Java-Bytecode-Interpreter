@@ -45,6 +45,9 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.List;
+import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.FormAttachment;
 
 public class Builder {
 
@@ -385,6 +388,7 @@ public class Builder {
 		shell.setText("Bytecode Interpreter");
 		
 		variables = new HashMap<Integer, Object>();
+		shell.setLayout(null);
 		
 		Menu menu = new Menu(shell, SWT.BAR);
 		shell.setMenuBar(menu);
@@ -419,8 +423,8 @@ public class Builder {
 		mntmNewItem.setText("Run");
 		
 		text = new Text(shell, SWT.BORDER | SWT.WRAP | SWT.V_SCROLL);
+		text.setBounds(10, 50, (int)(shell.getSize().x*0.2491), (int)(shell.getSize().y*0.5881));
 		text.setEditable(false);
-		text.setBounds(10, 50, 279, 357);
 		
 		
 		mntmOpen.addListener(SWT.Selection, new Listener() {
@@ -477,14 +481,14 @@ public class Builder {
 		      
 		    });
 		
-		Form form = formToolkit.createForm(shell);
-		form.setBounds(414, 21, 0, 0);
-		formToolkit.paintBordersFor(form);
-		form.setText("New Form");
+		//Form form = formToolkit.createForm(shell);
+		//form.setBounds(414, 21, 0, 0);
+		//formToolkit.paintBordersFor(form);
+		//form.setText("New Form");
 		
 		TableViewer tableViewer = new TableViewer(shell, SWT.BORDER | SWT.FULL_SELECTION);
 		table = tableViewer.getTable();
-		table.setBounds(301, 50, 253, 357);
+		table.setBounds((int)(shell.getSize().x*0.26875), 50, (int)(shell.getSize().x*0.22589), (int)(shell.getSize().y*0.5881));
 		formToolkit.paintBordersFor(table);
 		table.addListener(SWT.EraseItem, new Listener() {
 		    @Override
@@ -565,13 +569,14 @@ public class Builder {
 	    item1.setFont( boldFont );
 	
 		table_1 = new Table(shell, SWT.BORDER | SWT.FULL_SELECTION);
-		table_1.setBounds(301, 50, 253, 357);
+		table_1.setBounds((int)(shell.getSize().x*0.26875), 50, (int)(shell.getSize().x*0.22589), (int)(shell.getSize().y*0.5881));
 		formToolkit.adapt(table_1);
 		formToolkit.paintBordersFor(table_1);
 		table_1.setHeaderVisible(true);
 		table_1.setLinesVisible(true);
 		
 		Button btnNewButton = new Button(shell, SWT.NONE);
+		btnNewButton.setBounds(10, 10, 34, 34);
 		btnNewButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -633,11 +638,10 @@ public class Builder {
 			}
 		});
 		btnNewButton.setImage(SWTResourceManager.getImage(new File("src/swtbuilder/images/play.png").getAbsolutePath()));
-		//System.out.println(new File("images/play.png").getAbsolutePath());
-		btnNewButton.setBounds(10, 10, 34, 34);
 		formToolkit.adapt(btnNewButton, true, true);
 		
 		Button button = formToolkit.createButton(shell, "", SWT.NONE);
+		button.setBounds(50, 10, 34, 34);
 		button.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -669,9 +673,9 @@ public class Builder {
 			}
 		});
 		button.setImage(SWTResourceManager.getImage(Builder.class, "/org/eclipse/jface/wizard/images/stop.png"));
-		button.setBounds(50, 10, 34, 34);
 		
 		Button button_1 = new Button(shell, SWT.NONE);
+		button_1.setBounds(90, 10, 34, 34);
 		button_1.setImage(SWTResourceManager.getImage(new File("src/swtbuilder/images/next.png").getAbsolutePath()));
 		button_1.addSelectionListener(new SelectionAdapter() {
 			@Override
@@ -710,12 +714,11 @@ public class Builder {
 				
 			}
 		});
-		button_1.setBounds(90, 10, 34, 34);
 		formToolkit.adapt(button_1, true, true);
 		
 		TableViewer tableViewer_1 = new TableViewer(shell, SWT.BORDER | SWT.FULL_SELECTION);
 		table_2 = tableViewer_1.getTable();
-		table_2.setBounds(572, 50, 253, 357);
+		table_2.setBounds((int)(shell.getSize().x*0.51071), 50, (int)(shell.getSize().x*0.22589), (int)(shell.getSize().y*0.58814));
 		formToolkit.paintBordersFor(table_2);
 		
 		item1 = new TableItem(table_2, SWT.NONE);
@@ -729,7 +732,7 @@ public class Builder {
 		
 		TableViewer tableViewer_1_1 = new TableViewer(shell, SWT.BORDER | SWT.FULL_SELECTION);
 		table_3 = tableViewer_1_1.getTable();
-		table_3.setBounds(839, 50, 253, 357);
+		table_3.setBounds((int)(shell.getSize().x*0.7491), 50, (int)(shell.getSize().x*0.22589), (int)(shell.getSize().y*0.58814));
 		formToolkit.paintBordersFor(table_3);
 		
 		TableCursor tableCursor_1_1 = new TableCursor(table_3, SWT.NONE);
@@ -742,10 +745,11 @@ public class Builder {
 	    item1.setFont( boldFont );
 	    
 	    text_1 = new Text(shell, SWT.BORDER | SWT.WRAP);
-	    text_1.setBounds(301, 413, 253, 110);
+	    text_1.setBounds((int)(shell.getSize().x*0.26875), (int)(shell.getSize().y*0.6804), (int)(shell.getSize().x*0.22589), (int)(shell.getSize().y*0.1812));
 	    formToolkit.adapt(text_1, true, true);
 	    
 	    Button button_4 = new Button(shell, SWT.NONE);
+	    button_4.setBounds(130, 10, 34, 34);
 	    button_4.addSelectionListener(new SelectionAdapter() {
 	    	@Override
 	    	public void widgetSelected(SelectionEvent e) {
@@ -757,7 +761,17 @@ public class Builder {
 	    	}
 	    });
 	    button_4.setImage(SWTResourceManager.getImage(Builder.class, "/org/eclipse/jface/dialogs/images/help.png"));
-	    button_4.setBounds(130, 10, 34, 34);
 	    formToolkit.adapt(button_4, true, true);
+	    shell.addListener (SWT.Resize,  new Listener () {
+		    public void handleEvent (Event e) {
+		    	text.setBounds(10, 50, (int)(shell.getSize().x*0.2491), (int)(shell.getSize().y*0.5881));
+		    	text_1.setBounds((int)(shell.getSize().x*0.26875), (int)(shell.getSize().y*0.6804), (int)(shell.getSize().x*0.22589), (int)(shell.getSize().y*0.1812));
+		    	table.setBounds((int)(shell.getSize().x*0.26875), 50, (int)(shell.getSize().x*0.22589), (int)(shell.getSize().y*0.5881));
+		    	table_1.setBounds((int)(shell.getSize().x*0.26875), 50, (int)(shell.getSize().x*0.22589), (int)(shell.getSize().y*0.5881));
+		    	table_2.setBounds((int)(shell.getSize().x*0.51071), 50, (int)(shell.getSize().x*0.22589), (int)(shell.getSize().y*0.58814));
+		    	table_3.setBounds((int)(shell.getSize().x*0.7491), 50, (int)(shell.getSize().x*0.22589), (int)(shell.getSize().y*0.58814));
+		    	
+		    }
+		  });
 	}
 }
