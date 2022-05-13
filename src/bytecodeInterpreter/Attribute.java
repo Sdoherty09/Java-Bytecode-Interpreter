@@ -26,15 +26,15 @@ public class Attribute {
 	public Attribute() throws IOException {
 		Object attributeInfo[] = null;
 		int attributeNameIndex=BytecodeParse.inputStream.readUnsignedShort();
-		System.out.println("index: "+attributeNameIndex);
+		//System.out.println("index: "+attributeNameIndex);
 		int attributeLength=BytecodeParse.inputStream.readInt();
 		//System.out.println(attributeLength);
-		System.out.println("switch: "+byteToString(BytecodeParse.constantPool[attributeNameIndex-1].getBytes()));
+		//System.out.println("switch: "+byteToString(BytecodeParse.constantPool[attributeNameIndex-1].getBytes()));
 		switch(byteToString(BytecodeParse.constantPool[attributeNameIndex-1].getBytes()))
 		{
 		case "ConstantValue":
 			attributeInfo=new Object[1];
-			info[0]=BytecodeParse.inputStream.readUnsignedShort();
+			attributeInfo[0]=BytecodeParse.inputStream.readUnsignedShort();
 			break;
 		case "Code":
 			attributeInfo=new Object[10]; 
@@ -65,14 +65,14 @@ public class Attribute {
 				int codeAttributeNameIndex=BytecodeParse.inputStream.readUnsignedShort();
 				int codeAttributeLength=BytecodeParse.inputStream.readInt();
 				Object codeAttributeInfo[] = null;
-				System.out.println("code thing: "+byteToString(BytecodeParse.constantPool[codeAttributeNameIndex-1].getBytes()));
+				//System.out.println("code thing: "+byteToString(BytecodeParse.constantPool[codeAttributeNameIndex-1].getBytes()));
 				switch(byteToString(BytecodeParse.constantPool[codeAttributeNameIndex-1].getBytes()))
 				{
 				case "LineNumberTable":
 					codeAttributeInfo = new Object[2];
 					codeAttributeInfo[0]=BytecodeParse.inputStream.readUnsignedShort();
 					LineNumber[] lineNumbers=new LineNumber[(int) codeAttributeInfo[0]];
-					System.out.println("length: "+codeAttributeInfo[0]);
+					//System.out.println("length: "+codeAttributeInfo[0]);
 					for(int l=0;l<(int)codeAttributeInfo[0];l++)
 					{
 						int startPc=BytecodeParse.inputStream.readUnsignedShort();
@@ -98,7 +98,8 @@ public class Attribute {
 					break;
 				case "LocalVariableTypeTable":
 					codeAttributeInfo=new Object[2];
-					codeAttributeInfo[0]=BytecodeParse.inputStream.readInt();
+					codeAttributeInfo[0]=BytecodeParse.inputStream.readUnsignedShort();
+					System.out.println(codeAttributeInfo[0]);
 					LocalVariableType[] localVariableTypes=new LocalVariableType[(int)codeAttributeInfo[0]];
 					for(int l=0;l<(int)codeAttributeInfo[0];l++)
 					{
@@ -115,8 +116,8 @@ public class Attribute {
 					//System.out.println("stack map: "+byteToString(BytecodeParse.constantPool[codeAttributeNameIndex-1].getBytes()));
 					codeAttributeInfo=new Object[3];
 					codeAttributeInfo[0]=BytecodeParse.inputStream.readShort();
-					System.out.println("length: "+codeAttributeLength);
-					System.out.println("entries: "+codeAttributeInfo[0]);
+					//System.out.println("length: "+codeAttributeLength);
+					//System.out.println("entries: "+codeAttributeInfo[0]);
 					for(int l=0;l<codeAttributeLength-2;l++)
 					{
 						BytecodeParse.inputStream.readUnsignedByte();

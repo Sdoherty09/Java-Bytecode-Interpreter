@@ -13,12 +13,14 @@ import org.eclipse.ui.forms.widgets.Form;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.widgets.FileDialog;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
@@ -55,10 +57,36 @@ public class Builder {
 	int highlightSelection=1;
 	private Table table_2;
 	private Table table_3;
-	private HashMap<Integer, Integer> variables;
+	private HashMap<Integer, Object> variables;
 	private int nextStep=-1;
 	private Text text_1;
-
+	private String javaFile = null;
+	
+	private String cmdResponse(String command)
+	{
+		String response="";
+		ProcessBuilder builder = new ProcessBuilder("cmd.exe", "/c", command);
+	    builder.redirectErrorStream(true);
+	    Process p=null;
+		try {
+			p = builder.start();
+		} catch (IOException e) {
+			e.printStackTrace();
+			}
+	    BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()));
+	    String line="";
+	    while (true) {
+	            try {
+					line = r.readLine();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+	            if (line == null) { break; }
+	            response+=line;
+	        }
+	    return response;
+	}
+	
 	private String byteToString(byte[] bytes) throws UnsupportedEncodingException
 	{
 		ByteBuffer buffer = ByteBuffer.allocate(bytes.length);
@@ -88,7 +116,6 @@ public class Builder {
 		{
 			parameter=selection.substring(selection.lastIndexOf("\t")+2);
 			selection=selection.substring(0, selection.indexOf("\t"));
-			System.out.println(parameter);
 		}
 		ArrayList<TableItem> tableItems=new ArrayList<TableItem>();
 		for(int index=1;index<table_2.getItemCount();index++)
@@ -104,7 +131,6 @@ public class Builder {
 		}
 		Stack stack=new Stack(list);
 		TableItem tableItem;
-		System.out.println(selection);
 		String newContent;
 		TableItem item;
 		Display display = Display.getDefault();
@@ -115,7 +141,6 @@ public class Builder {
 			Method method = bytecodeParse.getCodeMethods().get(0);
 			for(int index=0;index<method.getAttributesCount();index++)
 			{
-				System.out.println(method);
 				/*if(method.getAttributes()!=null)
 				{
 					System.out.println("test");
@@ -179,7 +204,7 @@ public class Builder {
 			
 			break;
 		case "iload_1":
-			list=stack.push(Integer.toString(variables.get(1)));
+			list=stack.push(Integer.toString((int)variables.get(1)));
 			table_2.setItemCount(table_2.getItemCount()+1);
 			for(int index=1;index<table_2.getItemCount();index++)
 			{
@@ -189,7 +214,7 @@ public class Builder {
 			text_1.setText("Load the value "+variables.get(1)+" from variable 1, pushing it to the stack");
 			break;
 		case "iload_2":
-			list=stack.push(Integer.toString(variables.get(2)));
+			list=stack.push(Integer.toString((int)variables.get(2)));
 			table_2.setItemCount(table_2.getItemCount()+1);
 			for(int index=1;index<table_2.getItemCount();index++)
 			{
@@ -248,7 +273,7 @@ public class Builder {
 		case "iinc":
 			num1=Integer.parseInt(parameter.substring(0,parameter.indexOf(",")));
 			num2=Integer.parseInt(parameter.substring(parameter.indexOf(" ")+1,parameter.length()));
-			variables.replace(num1, variables.get(num1)+num2);
+			variables.replace(num1, (int)variables.get(num1)+num2);
 			for(int index=0;index<table_3.getItemCount();index++)
 			{
 				if(table_3.getItem(index).getText().contains("Variable "+num1))
@@ -279,7 +304,6 @@ public class Builder {
 			break;
 		case "goto":
 			int index=highlightSelection;
-			System.out.println("test");
 			while(!table.getItem(index).getText().contains(parameter+":"))
 			{
 				index--;			
@@ -288,7 +312,24 @@ public class Builder {
 			nextStep=index;
 			text_1.setText("Jump to step "+parameter);
 			break;
-		
+		case "astore_1":
+			item=new TableItem(table_3, SWT.NONE);
+			item.setBackground(0, new Color(display, 210, 0, 120));
+			item.setText("Variable 1: "+table_2.getItem(1).getText());
+			variables.put(1, table_2.getItem(1).getText());
+			text_1.setText("Pop the value "+table_2.getItem(1).getText()+" from the stack, storing it in variable 1");
+			table_2.setItemCount(table_2.getItemCount()-1);
+			list=stack.pop();
+			break;
+		case "astore_2":
+			item=new TableItem(table_3, SWT.NONE);
+			item.setBackground(0, new Color(display, 210, 0, 120));
+			item.setText("Variable 2: "+table_2.getItem(1).getText());
+			variables.put(1, table_2.getItem(1).getText());
+			text_1.setText("Pop the value "+table_2.getItem(1).getText()+" from the stack, storing it in variable 1");
+			table_2.setItemCount(table_2.getItemCount()-1);
+			list=stack.pop();
+			break;
 		/*default:
 			System.out.println("test");
 			for(int index=1;index<table_2.getItemCount();index++)
@@ -343,7 +384,7 @@ public class Builder {
 		shell.setSize(1120, 607);
 		shell.setText("Bytecode Interpreter");
 		
-		variables = new HashMap<Integer, Integer>();
+		variables = new HashMap<Integer, Object>();
 		
 		Menu menu = new Menu(shell, SWT.BAR);
 		shell.setMenuBar(menu);
@@ -378,15 +419,27 @@ public class Builder {
 		mntmNewItem.setText("Run");
 		
 		text = new Text(shell, SWT.BORDER | SWT.WRAP | SWT.V_SCROLL);
+		text.setEditable(false);
 		text.setBounds(10, 50, 279, 357);
 		
 		
 		mntmOpen.addListener(SWT.Selection, new Listener() {
 		      public void handleEvent(Event e) {
 		    	  FileDialog fileDialog = new FileDialog(shell, SWT.MULTI);
-		    	  String[] files= {"*.class"};
+		    	  String[] files= {"*.class", "*.java"};
 		    	  fileDialog.setFilterExtensions(files);
 		    	  String filePath = fileDialog.open();
+		    	  if(filePath.endsWith(".java"))
+		    	  {
+		    		  System.out.println(filePath.substring(0, filePath.lastIndexOf("\\")+1));
+		    		  System.out.println(cmdResponse("cd /d "+filePath.substring(0, filePath.lastIndexOf("\\")+1)+" && javac "+filePath.substring(filePath.lastIndexOf("\\")+1)));
+		    		  javaFile=ReadWrite.toString(filePath);
+		    		  filePath=filePath.replace(".java", ".class");
+		    	  }
+		    	  else
+		    	  {
+		    		  javaFile=ReadWrite.toString(filePath.replace(".class", ".java"));
+		    	  }
 		    	  File file = null;
 		    	  if(bytecodeParse!=null)
 		    	  {
@@ -444,9 +497,7 @@ public class Builder {
 		    public void handleEvent(Event event) {
 				event.detail &= ~SWT.FOCUSED;
 				event.detail &= ~SWT.SELECTED;
-				System.out.println("testing");
 				Point pt = new Point(event.x, event.y);
-				System.out.println("X: "+pt.x);
 	            TableItem item = table.getItem(pt);
 	            try
 	            {
@@ -493,10 +544,6 @@ public class Builder {
 								}
 								selected=table.getItem(highlightSelection);
 							}
-						}
-						else
-						{
-							System.out.println("test");
 						}
 		            }
 	            }
@@ -613,6 +660,7 @@ public class Builder {
 						table_3.getItem(index).setText("");
 					}
 					table_3.setItemCount(1);
+					text_1.setText("");
 				}
 				catch(IllegalArgumentException e1)
 				{
@@ -696,5 +744,20 @@ public class Builder {
 	    text_1 = new Text(shell, SWT.BORDER | SWT.WRAP);
 	    text_1.setBounds(301, 413, 253, 110);
 	    formToolkit.adapt(text_1, true, true);
+	    
+	    Button button_4 = new Button(shell, SWT.NONE);
+	    button_4.addSelectionListener(new SelectionAdapter() {
+	    	@Override
+	    	public void widgetSelected(SelectionEvent e) {
+	    		if(javaFile!=null && !javaFile.equals(""))
+	    		{
+	    			ViewCode viewCode=new ViewCode(shell, SWT.NONE, javaFile);
+	    			viewCode.open();
+	    		}
+	    	}
+	    });
+	    button_4.setImage(SWTResourceManager.getImage(Builder.class, "/org/eclipse/jface/dialogs/images/help.png"));
+	    button_4.setBounds(130, 10, 34, 34);
+	    formToolkit.adapt(button_4, true, true);
 	}
 }

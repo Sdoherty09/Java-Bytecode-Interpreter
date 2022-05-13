@@ -93,7 +93,8 @@ public class BytecodeParse {
 		return newContent;
 	}
 	public void parse() throws IOException {
-		//inputStream = new DataInputStream((ByteArrayInputStream)Object.class.getResource("Object.class").getContent());
+		//inputStream = new DataInputStream((ByteArrayInputStream)Object.class.getResource("String.class").getContent());
+		//System.out.println(Object.class.getResource("String.class").getPath());
 		inputStream = new DataInputStream(new ByteArrayInputStream(bytecodeBytes));
 		int accessFlags=0;
 		int magic=inputStream.readInt();
@@ -107,7 +108,6 @@ public class BytecodeParse {
 		for(int index=0;index<constantPoolCount-1;index++)
 		{
 			tag=inputStream.readUnsignedByte();
-			System.out.println(index+": "+tag);
 			switch(tag)
 			{
 			case 7: case 8: case 16:
@@ -137,7 +137,7 @@ public class BytecodeParse {
 					bytes[j]=(byte)inputStream.readUnsignedByte();
 				}
 				//System.out.println(index);
-				//System.out.println(byteToString(bytes));
+				//System.out.println(index+": "+byteToString(bytes));
 				break;
 			case 15:
 				info=new int[2];
@@ -159,19 +159,17 @@ public class BytecodeParse {
 			accessFlags=inputStream.readUnsignedShort();
 		}
 		
-		System.out.println(accessFlags);
 		int thisClass=inputStream.readUnsignedShort();
-		System.out.println("class num: "+thisClass);
-		System.out.println("this class: "+byteToString(constantPool[constantPool[thisClass-1].getInfo()[0]-1].getBytes()));
+		//System.out.println("this class: "+byteToString(constantPool[constantPool[thisClass-1].getInfo()[0]-1].getBytes()));
 		int superClass=inputStream.readUnsignedShort();
 		int interfacesCount=inputStream.readUnsignedShort();
-		ConstantPool interfaces[] = new ConstantPool[interfacesCount];
+		int[] interfaces = new int[interfacesCount];
+		//System.out.println(interfacesCount);
+		//ConstantPool interfaces[] = new ConstantPool[interfacesCount];
 		for(int index=0;index<interfacesCount;index++)
 		{
-			tag=inputStream.readUnsignedByte();
-			info=new int[1];
-			info[0]=inputStream.readUnsignedShort();
-			interfaces[index]=new ConstantPool(tag, info);
+			interfaces[index]=inputStream.readUnsignedShort();
+			//System.out.println(byteToString(constantPool[interfaces[index]].getBytes()));
 		}
 		int fieldsCount=inputStream.readUnsignedShort();
 		Field fields[] = new Field[fieldsCount];
@@ -180,6 +178,7 @@ public class BytecodeParse {
 			int fieldAccessFlags=inputStream.readUnsignedShort();
 			int fieldNameIndex=inputStream.readUnsignedShort();
 			int fieldDescriptorIndex=inputStream.readUnsignedShort();
+			System.out.println(byteToString(constantPool[fieldDescriptorIndex-1].getBytes()));
 			int attributesCount=inputStream.readUnsignedShort();
 			Attribute attributes[]=new Attribute[attributesCount];
 			for(int j=0;j<attributesCount;j++)
@@ -188,23 +187,21 @@ public class BytecodeParse {
 			}
 		}
 		int methodsCount=inputStream.readUnsignedShort();
-		System.out.println("methods count: "+methodsCount);
 		Method[] methods=new Method[methodsCount];
 		for(int index=0;index<methodsCount;index++)
 		{
 			int methodAccessFlags=inputStream.readUnsignedShort();
-			int methodNameIndex=inputStream.readUnsignedShort(); //correct prob
+			int methodNameIndex=inputStream.readUnsignedShort(); //correct prob		
 			int methodDescriptorIndex=inputStream.readUnsignedShort(); //not??
+			//System.out.println(byteToString(constantPool[methodNameIndex-1].getBytes())+byteToString(constantPool[methodDescriptorIndex-1].getBytes()));
 			int methodAttributesCount=inputStream.readUnsignedShort();
-			System.out.println("ACCESS FLAG: "+methodAccessFlags);
-			System.out.println("name: " + methodNameIndex);
-			System.out.println("method count: "+methodAttributesCount);
 			Attribute[] methodAttributes=new Attribute[methodAttributesCount];
 			for(int j=0;j<methodAttributesCount;j++)
 			{
 				methodAttributes[j]=new Attribute();
 				if(byteToString(constantPool[methodAttributes[j].getNameIndex()-1].getBytes()).equals("Code"))
 				{
+					//System.out.println("access flags: "+methodAccessFlags);
 					codeBytes.add((byte[])methodAttributes[j].getInfo()[3]);
 					classNames.put((byte[])methodAttributes[j].getInfo()[3], byteToString(constantPool[methodNameIndex-1].getBytes())+byteToString(constantPool[methodDescriptorIndex-1].getBytes()));
 					opcodeStringify=new OpcodeString((byte[])methodAttributes[j].getInfo()[3], byteToString(constantPool[methodNameIndex-1].getBytes())+byteToString(constantPool[methodDescriptorIndex-1].getBytes()));
