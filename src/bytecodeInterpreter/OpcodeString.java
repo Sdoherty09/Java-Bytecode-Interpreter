@@ -53,12 +53,13 @@ public class OpcodeString {
 				temp.add(index+": return\n");
 				break;
 			case 178:
-				temp.add(index+": getstatic\t "+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[BytecodeParse.constantPool[((bytes[index+1] << 8)+bytes[index+2] & 0xff)-1].getInfo()[0]-1].getInfo()[0]-1].getBytes())+"."+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[BytecodeParse.constantPool[((bytes[index+1] << 8)+bytes[index+2] & 0xff)-1].getInfo()[1]-1].getInfo()[0]-1].getBytes())+":"+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[BytecodeParse.constantPool[((bytes[index+1] << 8)+bytes[index+2] & 0xff)-1].getInfo()[1]-1].getInfo()[1]-1].getBytes()));
+				bytesNum=(bytes[index+1] << 8)+(bytes[index+2] & 0xff);
+				temp.add(index+": getstatic\t "+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[BytecodeParse.constantPool[bytesNum-1].getInfo()[0]-1].getInfo()[0]-1].getBytes())+"."+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[BytecodeParse.constantPool[bytesNum-1].getInfo()[1]-1].getInfo()[0]-1].getBytes())+":"+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[BytecodeParse.constantPool[bytesNum-1].getInfo()[1]-1].getInfo()[1]-1].getBytes()));
 				index+=2;
 				break;
 			case 18:
 				System.out.println(bytes[index+1]);
-				if(BytecodeParse.constantPool[bytes[index+1]-1].getTag()==8)
+				if(BytecodeParse.constantPool[(bytes[index+1] & 0xff)-1].getTag()==8)
 				{
 					temp.add(index+ ": ldc\t String "+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[(bytes[index+1] & 0xff)-1].getInfo()[0]-1].getBytes()));
 				}
@@ -236,6 +237,11 @@ public class OpcodeString {
 				offset+=4;
 				int npairs=(int)(bytes[offset] & 0xff << 24) | (int)(bytes[offset+1] & 0xff << 16) | (int)(bytes[offset+2] & 0xff << 8) | (int)bytes[offset+3] & 0xff;
 				System.out.println("NPAIRS: "+npairs);
+				break;
+			case 192:
+				bytesNum=(bytes[index+1] << 8)+(bytes[index+2] & 0xff);
+				temp.add("checkcast\t "+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[bytesNum-1].getInfo()[0]-1].getBytes()));
+				index+=2;
 				break;
 			default:
 				temp.add(""+(bytes[index] & 0xff));

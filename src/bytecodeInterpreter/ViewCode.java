@@ -69,7 +69,7 @@ public class ViewCode extends Dialog {
 		StyledText styledText = textViewer.getTextWidget();	
 		shlCode.addListener (SWT.Resize,  new Listener () {
 		    public void handleEvent (Event e) {
-		    	fd_styledText.bottom = new FormAttachment(0, shlCode.getSize().y-30);
+		    	fd_styledText.bottom = new FormAttachment(0, shlCode.getSize().y-60);
 				fd_styledText.right = new FormAttachment(0, shlCode.getSize().x-30);
 				fd_styledText.top = new FormAttachment(0, 10);
 				fd_styledText.left = new FormAttachment(0, 10);
@@ -78,7 +78,7 @@ public class ViewCode extends Dialog {
 				styledText.setText(getTextField());
 		    }
 		  });
-		fd_styledText.bottom = new FormAttachment(0, shlCode.getSize().y-30);
+		fd_styledText.bottom = new FormAttachment(0, shlCode.getSize().y-60);
 		fd_styledText.right = new FormAttachment(0, shlCode.getSize().x-30);
 		fd_styledText.top = new FormAttachment(0, 10);
 		fd_styledText.left = new FormAttachment(0, 10);
