@@ -370,7 +370,7 @@ public class Builder {
 			num1 = Integer.parseInt(parameter);
 			num2 = Integer.parseInt(list.get(0));
 			list=stack.pop();
-			if(num2==num1)
+			if(num2!=num1)
 			{
 				index=highlightSelection;
 				while(!table_1.getItem(index).getText().contains(parameter+":"))
