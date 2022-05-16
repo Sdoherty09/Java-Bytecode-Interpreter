@@ -51,6 +51,7 @@ public class Builder {
 	private Text text_2;
 	private String javaFile = null;
 	private OpcodeString opcodeString;
+	private Text text_3;
 	private String cmdResponse(String command)
 	{
 		String response="";
@@ -868,7 +869,7 @@ public class Builder {
 		mntmNewItem.setText("Run");
 		
 		text_1 = new Text(shell, SWT.BORDER | SWT.WRAP | SWT.V_SCROLL);
-		text_1.setBounds(10, 50, (int)(shell.getSize().x*0.2491), (int)(shell.getSize().y*0.5881));
+		text_1.setBounds(10, 50, (int)(shell.getSize().x*0.2491), (int)(shell.getSize().y*0.4));
 		text_1.setEditable(false);
 		
 		
@@ -920,6 +921,10 @@ public class Builder {
 			    		  e1.printStackTrace();
 			    		  file = null;
 			    	  }
+			    	  if(javaFile!=null && !javaFile.equals(""))
+			    		{
+			    		  text_3.setText(javaFile);
+			    		}
 		    	  }
 		    	  catch(NullPointerException e2)
 		    	  {
@@ -1213,10 +1218,15 @@ public class Builder {
 	    });
 	    button_4.setImage(SWTResourceManager.getImage(Builder.class, "/org/eclipse/jface/dialogs/images/help.png"));
 	    formToolkit.adapt(button_4, true, true);
+	    
+	    text_3 = new Text(shell, SWT.BORDER | SWT.READ_ONLY | SWT.H_SCROLL | SWT.V_SCROLL | SWT.CANCEL);
+	    text_3.setBounds(10, (int)(shell.getSize().y*0.5), (int)(shell.getSize().x*0.2482), (int)(shell.getSize().y*0.3641));
+	    formToolkit.adapt(text_3, true, true);
 	    shell.addListener (SWT.Resize,  new Listener () {
 		    public void handleEvent (Event e) {
-		    	text_1.setBounds(10, 50, (int)(shell.getSize().x*0.2491), (int)(shell.getSize().y*0.5881));
+		    	text_1.setBounds(10, 50, (int)(shell.getSize().x*0.2491), (int)(shell.getSize().y*0.4));
 		    	text_2.setBounds((int)(shell.getSize().x*0.26875), (int)(shell.getSize().y*0.6804), (int)(shell.getSize().x*0.22589), (int)(shell.getSize().y*0.1812));
+		    	text_3.setBounds(10, (int)(shell.getSize().y*0.5), (int)(shell.getSize().x*0.2482), (int)(shell.getSize().y*0.3641));
 		    	table_1.setBounds((int)(shell.getSize().x*0.26875), 50, (int)(shell.getSize().x*0.22589), (int)(shell.getSize().y*0.5881));
 		    	table_2.setBounds((int)(shell.getSize().x*0.26875), 50, (int)(shell.getSize().x*0.22589), (int)(shell.getSize().y*0.5881));
 		    	table_3.setBounds((int)(shell.getSize().x*0.51071), 50, (int)(shell.getSize().x*0.22589), (int)(shell.getSize().y*0.58814));
