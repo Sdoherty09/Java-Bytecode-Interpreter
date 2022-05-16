@@ -9,45 +9,31 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.swt.widgets.Table;
-import org.eclipse.ui.forms.widgets.Form;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.widgets.FileDialog;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.DataInput;
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-
 import java.util.HashMap;
 
-import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.custom.TableCursor;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
-import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.wb.swt.SWTResourceManager;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.RGB;
-import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.widgets.List;
-import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.layout.FormAttachment;
 
 public class Builder {
 
@@ -101,6 +87,17 @@ public class Builder {
 	    }
 		return newContent;
 	}
+	private String arrayString(Object[] array)
+	{
+		String build="[";
+		for(int index=0;index<array.length;index++)
+		{
+			if(array[index]==null) build+=" null,";
+			else build+=" "+array[index]+",";
+		}
+		build=build.substring(0, build.lastIndexOf(","))+" ]";
+		return build;
+	}
 	private boolean canTraverseTo(TableItem start, TableItem end)
 	{
 		for(int index=0;index<table_1.getItemCount();index++)
@@ -109,6 +106,48 @@ public class Builder {
 			if(table_1.getItem(index)==start) return true;
 		}
 		return false;
+	}
+	private Integer[] toIntArray(String stringArray)
+	{
+		Object[] objectArray=toObjectArray(stringArray);
+		Integer[] returnArray=new Integer[objectArray.length];
+		for(int index=0;index<returnArray.length;index++)
+		{
+			if(objectArray[index]!=null) returnArray[index]=(int)objectArray[index];
+			else returnArray[index] = null;
+		}
+		return returnArray;
+	}
+	private Object[] toObjectArray(String stringArray)
+	{
+		System.out.println("array: "+stringArray);
+		stringArray=stringArray.substring(stringArray.indexOf("[")+1);
+		ArrayList<Object> arrayList=new ArrayList<Object>();
+		String currentNum=null;
+		while(stringArray.indexOf(",")!=-1)
+		{	
+			currentNum=stringArray.substring(1, stringArray.indexOf(","));
+			if(!currentNum.equals("null")) arrayList.add(Integer.parseInt(currentNum));
+			else arrayList.add(null);
+			stringArray=stringArray.substring(stringArray.indexOf(",")+1);
+		}
+		currentNum=stringArray.substring(1, stringArray.lastIndexOf(" "));
+		if(!currentNum.equals("null")) arrayList.add(Integer.parseInt(currentNum));
+		else arrayList.add(null);
+		return arrayList.toArray();
+	}
+	private void variableReplace(int num, Object replace)
+	{
+		variables.replace(num, replace);
+		for(int index=0;index<table_4.getItemCount();index++)
+		{
+			if(table_4.getItem(index).getText().contains("Variable "+num+":"))
+			{
+				table_4.getItem(index).setText("Variable "+num+": "+variables.get(num));
+				Display display = Display.getDefault();
+				table_4.getItem(index).setBackground(0, new Color(display, 210, 0, 120));
+			}
+		}
 	}
 	private void getSelection() throws UnsupportedEncodingException {
 		String selection = table_1.getItem(highlightSelection).getText();
@@ -137,31 +176,30 @@ public class Builder {
 		String newContent;
 		TableItem item;
 		Display display = Display.getDefault();
+		Object[] array;
+		HashMap<TableItem, Integer> references = new HashMap<TableItem, Integer>();
 		int num1;
 		int num2;
 		
 		switch(selection) {
 		case "aload_0":
-			Method method = bytecodeParse.getCodeMethods().get(0);
-			for(int index=0;index<method.getAttributesCount();index++)
-			{
-				/*if(method.getAttributes()!=null)
-				{
-					System.out.println("test");
-					if(byteToString(BytecodeParse.constantPool[method.getAttributes()[index].getNameIndex()-1].getBytes()).equals("LocalVariableTable"))
-					{
-						
-					}
-				}*/
-				
-			}
-			list=stack.push("0");
+			list=stack.push((String)variables.get(0));
 			table_3.setItemCount(table_3.getItemCount()+1);
 			table_3.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
-			for(int index=1;index<table_3.getItemCount();index++)
-			{
-				table_3.getItem(index).setText(list.get(index-1));			
-			}
+			
+			text_2.setText("Load the value "+variables.get(0)+" from variable 0, pushing it to the stack");
+			break;
+		case "aload_1":
+			list=stack.push((String)variables.get(1));
+			table_3.setItemCount(table_3.getItemCount()+1);
+			table_3.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
+			text_2.setText("Load the value "+variables.get(1)+" from variable 1, pushing it to the stack");
+			break;
+		case "aload_2":
+			list=stack.push((String)variables.get(2));
+			table_3.setItemCount(table_3.getItemCount()+1);
+			table_3.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
+			text_2.setText("Load the value "+variables.get(2)+" from variable 2, pushing it to the stack");
 			break;
 		case "iconst_0":
 			list=stack.push("0");
@@ -173,6 +211,13 @@ public class Builder {
 			table_3.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
 			text_2.setText("Push the value 0 onto the stack");
 			break;
+		case "arraylength":
+			array=toObjectArray(table_3.getItem(1).getText());
+			list=stack.pop();
+			list=stack.push(Integer.toString(array.length));
+			text_2.setText("Push the length of the array at the top of the stack");
+			table_3.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
+			break;
 		case "iconst_1":
 			list=stack.push("1");
 			table_3.setItemCount(table_3.getItemCount()+1);
@@ -182,7 +227,48 @@ public class Builder {
 			}
 			table_3.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
 			text_2.setText("Push the value 1 onto the stack");
-			break;	
+			break;
+		case "iconst_2":
+			list=stack.push("2");
+			table_3.setItemCount(table_3.getItemCount()+1);
+			for(int index=1;index<table_3.getItemCount();index++)
+			{
+				table_3.getItem(index).setText(list.get(index-1));				
+			}
+			table_3.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
+			text_2.setText("Push the value 2 onto the stack");
+			break;
+		case "iconst_3":
+			list=stack.push("3");
+			table_3.setItemCount(table_3.getItemCount()+1);
+			for(int index=1;index<table_3.getItemCount();index++)
+			{
+				table_3.getItem(index).setText(list.get(index-1));				
+			}
+			table_3.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
+			text_2.setText("Push the value 3 onto the stack");
+			break;
+		case "iconst_4":
+			list=stack.push("4");
+			table_3.setItemCount(table_3.getItemCount()+1);
+			for(int index=1;index<table_3.getItemCount();index++)
+			{
+				table_3.getItem(index).setText(list.get(index-1));				
+			}
+			table_3.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
+			text_2.setText("Push the value 4 onto the stack");
+			break;
+		case "iconst_5":
+			list=stack.push("5");
+			table_3.setItemCount(table_3.getItemCount()+1);
+			for(int index=1;index<table_3.getItemCount();index++)
+			{
+				table_3.getItem(index).setText(list.get(index-1));				
+			}
+			table_3.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
+			text_2.setText("Push the value 5 onto the stack");
+			break;
+		
 		case "istore_1":
 			item=new TableItem(table_4, SWT.NONE);
 			item.setBackground(0, new Color(display, 210, 0, 120));
@@ -206,6 +292,61 @@ public class Builder {
 				table_3.getItem(index).setText(list.get(index-1));				
 			}
 			
+			break;
+		case "istore_3":
+			item=new TableItem(table_4, SWT.NONE);
+			item.setBackground(0, new Color(display, 210, 0, 120));
+			item.setText("Variable 3: "+table_3.getItem(1).getText());
+			variables.put(3, Integer.parseInt(table_3.getItem(1).getText()));
+			text_2.setText("Pop the value "+table_3.getItem(1).getText()+" from the stack, storing it in variable 3");
+			table_3.setItemCount(table_3.getItemCount()-1);
+			list=stack.pop();
+			for(int index=1;index<table_3.getItemCount();index++)
+			{
+				table_3.getItem(index).setText(list.get(index-1));				
+			}
+			
+			break;
+		case "newarray":
+			System.out.println(table_3.getItem(1).getText());
+			array = new Object[Integer.parseInt(table_3.getItem(1).getText())];
+			list=stack.pop();
+			list=stack.push(arrayString(array));
+			text_2.setText("Create a new array of type "+parameter);
+			for(int index=1;index<table_3.getItemCount();index++)
+			{
+				table_3.getItem(index).setText(list.get(index-1));				
+			}
+			table_3.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
+			//
+			/*switch(parameter)
+			{
+			case "boolean":
+				boolean[] array_bool=(boolean[])array;
+				break;
+			case "char":
+				boolean[] array=new boolean[Integer.parseInt(table_3.getItem(1).getText())];
+				break;
+			case "float":
+				boolean[] array=new boolean[Integer.parseInt(table_3.getItem(1).getText())];
+				break;
+			case "double":
+				boolean[] array=new boolean[Integer.parseInt(table_3.getItem(1).getText())];
+				break;
+			case "byte":
+				boolean[] array=new boolean[Integer.parseInt(table_3.getItem(1).getText())];
+				break;
+			case "short":
+				boolean[] array=new boolean[Integer.parseInt(table_3.getItem(1).getText())];
+				break;
+			case "int":
+				boolean[] array=new boolean[Integer.parseInt(table_3.getItem(1).getText())];
+				break;
+			case "long":
+				boolean[] array=new boolean[Integer.parseInt(table_3.getItem(1).getText())];
+				break;
+				
+			}*/
 			break;
 		case "iload_0":
 			list=stack.push(Integer.toString((int)variables.get(0)));
@@ -238,7 +379,16 @@ public class Builder {
 			table_3.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
 			text_2.setText("Load the value "+variables.get(2)+" from variable 2, pushing it to the stack");
 			break;
-		
+		case "iload_3":
+			list=stack.push(Integer.toString((int)variables.get(3)));
+			table_3.setItemCount(table_3.getItemCount()+1);
+			for(int index=1;index<table_3.getItemCount();index++)
+			{
+				table_3.getItem(index).setText(list.get(index-1));			
+			}
+			table_3.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
+			text_2.setText("Load the value "+variables.get(3)+" from variable 3, pushing it to the stack");
+			break;
 		case "bipush":
 			list=stack.push(parameter);
 			table_3.setItemCount(table_3.getItemCount()+1);
@@ -283,20 +433,39 @@ public class Builder {
 			{
 				table_3.getItem(index).setText(list.get(index-1));
 			}
-			text_2.setText("Check if "+num2+" is greather or equal to "+num1+", jumping to step "+parameter+" if so");
+			text_2.setText("Check if "+num2+" is greater or equal to "+num1+", jumping to step "+parameter+" if so");
+			break;
+		case "if_icmpgt":
+			num1 = Integer.parseInt(list.get(0));
+			list=stack.pop();
+			num2 = Integer.parseInt(list.get(0));
+			list=stack.pop();
+			if(num2>num1)
+			{
+				int index=highlightSelection;
+				while(!table_1.getItem(index).getText().contains(parameter+":"))
+				{
+					index++;			
+				}
+				table_1.getItem(index).setBackground(0, new Color(display, 0, 255, 0));
+				nextStep=index;
+			}
+			else
+			{
+				nextStep=highlightSelection+1;
+				table_1.getItem(nextStep).setBackground(0, new Color(display, 0, 255, 0));
+			}
+			table_3.setItemCount(table_3.getItemCount()-2);
+			for(int index=1;index<table_3.getItemCount();index++)
+			{
+				table_3.getItem(index).setText(list.get(index-1));
+			}
+			text_2.setText("Check if "+num2+" is greater than "+num1+", jumping to step "+parameter+" if so");
 			break;
 		case "iinc":
 			num1=Integer.parseInt(parameter.substring(0,parameter.indexOf(",")));
 			num2=Integer.parseInt(parameter.substring(parameter.indexOf(" ")+1,parameter.length()));
-			variables.replace(num1, (int)variables.get(num1)+num2);
-			for(int index=0;index<table_4.getItemCount();index++)
-			{
-				if(table_4.getItem(index).getText().contains("Variable "+num1))
-				{
-					table_4.getItem(index).setText("Variable "+num1+": "+variables.get(num1));
-					table_4.getItem(index).setBackground(0, new Color(display, 210, 0, 120));
-				}
-			}
+			variableReplace(num1, (Object)((int)variables.get(num1)+num2));
 			text_2.setText("Increment the value stored in variable "+num1+" by "+num2);
 			break;
 		case "getstatic":
@@ -322,17 +491,11 @@ public class Builder {
 			System.out.println("count: "+parameter);
 			if(Integer.parseInt(parameter)<index)
 			{
-				while(!table_1.getItem(index).getText().contains(parameter+":"))
-				{
-					index--;			
-				}
+				while(!table_1.getItem(index).getText().startsWith(parameter+":")) index--;
 			}
 			else
 			{
-				while(!table_1.getItem(index).getText().contains(parameter+":"))
-				{
-					index++;			
-				}
+				while(!table_1.getItem(index).getText().startsWith(parameter+":")) index++;
 			}
 			table_1.getItem(index).setBackground(0, new Color(display, 0, 255, 0));
 			nextStep=index;
@@ -391,6 +554,17 @@ public class Builder {
 				table_3.getItem(index).setText(list.get(index-1));
 			}
 			text_2.setText("Check if "+num2+" is not equal to "+num1+", jumping to step "+parameter+" if so");
+			break;
+		case "dup":
+			System.out.println(table_3.getItem(1).getText());
+			list=stack.push(table_3.getItem(1).getText());
+			text_2.setText("Duplicate the top value of the stack");
+			table_3.setItemCount(table_3.getItemCount()+1);
+			table_3.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
+			for(index=1;index<table_3.getItemCount();index++)
+			{
+				table_3.getItem(index).setText(list.get(index-1));				
+			}
 			break;
 		case "invokestatic":
 			HashMap<Integer, Object> variables_temp = variables;
@@ -567,6 +741,39 @@ public class Builder {
 			table_3.setItemCount(table_3.getItemCount()-1);
 			text_2.setText("Pop the top value from the stack");
 			break;
+		case "iastore":
+			int arrayValue=Integer.parseInt(table_3.getItem(1).getText());
+			int arrayIndex=Integer.parseInt(table_3.getItem(2).getText());
+			Integer[] iArray=toIntArray(table_3.getItem(3).getText());
+			int variableNum=0;
+			for(index=1;index<variables.size();index++)
+			{
+				//System.out.println(((String)variables.get(index)).substring(((String)variables.get(index)).indexOf(":")+1));
+				if(((String)variables.get(index)).substring(((String)variables.get(index)).indexOf(":")+1).equals(table_3.getItem(3).getText()))
+				{
+					System.out.println("getting here");
+					variableNum=index;
+				}
+			}
+			list=stack.pop();
+			list=stack.pop();
+			list=stack.pop();			
+			iArray[arrayIndex]=arrayValue;
+			Object[] objectArray=new Object[iArray.length];
+			for(index=0;index<objectArray.length;index++)
+			{
+				objectArray[index]=(Object)iArray[index];
+			}
+			list=stack.push(arrayString(objectArray));
+			variableReplace(variableNum, arrayString(objectArray));
+			text_2.setText("Store value "+arrayValue+" into index "+arrayIndex);
+			table_3.setItemCount(table_3.getItemCount()-3);
+			for(index=1;index<table_3.getItemCount();index++)
+			{
+				table_3.getItem(index).setText(list.get(index-1));
+			}
+			
+			break;
 		/*default:
 			System.out.println("test");
 			for(int index=1;index<table_2.getItemCount();index++)
@@ -575,6 +782,10 @@ public class Builder {
 			}
 			table_2.setItemCount(1);
 			break;*/
+		}
+		for(int index=1;index<table_3.getItemCount();index++)
+		{
+			table_3.getItem(index).setText(list.get(index-1));				
 		}
 	}
 	

@@ -102,6 +102,9 @@ public class OpcodeString {
 			case 61:
 				temp.add(index+": istore_2");
 				break;
+			case 62:
+				temp.add(index+": istore_3");
+				break;
 			case 54:
 				temp.add(index+": istore\t "+bytes[index+1]);
 				index++;
@@ -112,6 +115,9 @@ public class OpcodeString {
 				break;
 			case 28:
 				temp.add(index+": iload_2");
+				break;
+			case 29:
+				temp.add(index+": iload_3");
 				break;
 			case 20: //TODO: finish
 				BigInteger bigInt = new BigInteger((ByteBuffer.allocate(4).putInt(BytecodeParse.constantPool[(bytes[index+1] << 8) +bytes[index+2]].getInfo()[0])).array());
@@ -135,6 +141,10 @@ public class OpcodeString {
 				temp.add(index+": if_icmpge\t "+(index+(short)((bytes[index+1]& 0xff << 8)+bytes[index+2]& 0xff)));
 				index+=2;
 				break;
+			case 163:
+				temp.add(index+": if_icmpgt\t "+(index+(short)((bytes[index+1]& 0xff << 8)+bytes[index+2]& 0xff)));
+				index+=2;
+				break;
 			case 132:
 				temp.add(index+": iinc\t\t "+bytes[index+1]+", "+bytes[index+2]);
 				index+=2;
@@ -152,7 +162,7 @@ public class OpcodeString {
 				temp.add(index+": iload_0");
 				break;
 			case 5:
-				temp.add(index+ ": iconst_0");
+				temp.add(index+ ": iconst_2");
 				break;
 			case 112:
 				temp.add(index+ ": irem");
@@ -165,7 +175,7 @@ public class OpcodeString {
 				temp.add(index+ ": iconst_1");
 				break;
 			case 172:
-				temp.add(index+ ": ireturn");
+				temp.add(index+ ": ireturn\n");
 				break;
 			case 27:
 				temp.add(index+": iload_1");
@@ -190,6 +200,15 @@ public class OpcodeString {
 			case 43:
 				temp.add(index+": aload_1");
 				break;
+			case 44:
+				temp.add(index+": aload_2");
+				break;
+			case 45:
+				temp.add(index+": aload_3");
+				break;
+			case 190:
+				temp.add(index+": arraylength");
+				break;
 			case 89:
 				temp.add(index+": dup");
 				break;
@@ -212,36 +231,89 @@ public class OpcodeString {
 				index+=2;
 				break;
 			case 176:
-				temp.add(index+": areturn");
+				temp.add(index+": areturn\n");
 				break;
 			case 185:
 				bytesNum=(bytes[index+1] << 8)+(bytes[index+2] & 0xff);
-				temp.add("invokeinterface\t "+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[BytecodeParse.constantPool[bytesNum-1].getInfo()[0]-1].getInfo()[0]-1].getBytes())+"."+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[BytecodeParse.constantPool[bytesNum-1].getInfo()[1]-1].getInfo()[0]-1].getBytes())+":"+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[BytecodeParse.constantPool[bytesNum-1].getInfo()[1]-1].getInfo()[1]-1].getBytes()));
+				temp.add(index+": invokeinterface\t "+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[BytecodeParse.constantPool[bytesNum-1].getInfo()[0]-1].getInfo()[0]-1].getBytes())+"."+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[BytecodeParse.constantPool[bytesNum-1].getInfo()[1]-1].getInfo()[0]-1].getBytes())+":"+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[BytecodeParse.constantPool[bytesNum-1].getInfo()[1]-1].getInfo()[1]-1].getBytes()));
 				index+=4;
 				//TODO: finish?
 				break;
 			case 186:
 				bytesNum=(bytes[index+1] << 8)+(bytes[index+2] & 0xff);
 				System.out.println("bytes: "+bytesNum);
-				temp.add("invokedynamic\t "+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[BytecodeParse.constantPool[bytesNum-1].getInfo()[1]-1].getInfo()[0]-1].getBytes()));
+				temp.add(index+": invokedynamic\t "+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[BytecodeParse.constantPool[bytesNum-1].getInfo()[1]-1].getInfo()[0]-1].getBytes()));
 				index+=4;
 				break;
 			case 171:
+				temp.add(index+": lookupswitch");
 				int offset=index+1;
-				while(bytes[offset]==0)
+				while(offset%4!=0)
 				{
 					offset++;
 				}
-				int defaultBytes=(bytes[offset] & 0xff << 24) | (bytes[offset+1] & 0xff << 16) | (bytes[offset+2] & 0xff << 8) | bytes[offset+3] & 0xff;
-				System.out.println("DEFAULT BYTES: "+defaultBytes);
+				int defaultBytes=((bytes[offset] << 24) | (bytes[offset+1] << 16) | (bytes[offset+2] << 8) | (bytes[offset+3] << 0));
 				offset+=4;
-				int npairs=(int)(bytes[offset] & 0xff << 24) | (int)(bytes[offset+1] & 0xff << 16) | (int)(bytes[offset+2] & 0xff << 8) | (int)bytes[offset+3] & 0xff;
+				System.out.println("DEFAULT BYTES: "+defaultBytes);
+				int npairs=((bytes[offset] << 24) | (bytes[offset+1] << 16) | (bytes[offset+2] << 8) | (bytes[offset+3] << 0));
 				System.out.println("NPAIRS: "+npairs);
+				for(int j=0;j<npairs;j++)
+				{
+					index+=8;
+				}
 				break;
 			case 192:
 				bytesNum=(bytes[index+1] << 8)+(bytes[index+2] & 0xff);
 				temp.add("checkcast\t "+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[bytesNum-1].getInfo()[0]-1].getBytes()));
 				index+=2;
+				break;
+			case 153:
+				temp.add(index+": ifeq\t "+(index+(short)((bytes[index+1]& 0xff << 8)+bytes[index+2]& 0xff)));
+				index+=2;
+				break;
+			case 8:
+				temp.add(index+": iconst_5");
+				break;
+			case 7:
+				temp.add(index+": iconst_4");
+				break;
+			case 188:
+				String toAdd="newarray\t ";
+				switch(bytes[index+1])
+				{
+				case 4:
+					toAdd+="boolean";
+					break;
+				case 5:
+					toAdd+="char";
+					break;
+				case 6:
+					toAdd+="float";
+					break;
+				case 7:
+					toAdd+="double";
+					break;
+				case 8:
+					toAdd+="byte";
+					break;
+				case 9:
+					toAdd+="short";
+					break;
+				case 10:
+					toAdd+="int";
+					break;
+				case 11:
+					toAdd+="long";
+					break;				
+				}
+				temp.add(index+": "+toAdd);
+				index++;
+				break;
+			case 79:
+				temp.add(index+": iastore");
+				break;
+			case 121:
+				temp.add(index+": lshl");
 				break;
 			default:
 				temp.add(""+(bytes[index] & 0xff));

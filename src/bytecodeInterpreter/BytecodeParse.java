@@ -93,7 +93,7 @@ public class BytecodeParse {
 		return newContent;
 	}
 	public void parse() throws IOException {
-		//inputStream = new DataInputStream((ByteArrayInputStream)Object.class.getResource("System.class").getContent());
+		//inputStream = new DataInputStream((ByteArrayInputStream)Object.class.getResource("StringBuilder.class").getContent());
 		//System.out.println(Object.class.getResource("String.class").getPath());
 		inputStream = new DataInputStream(new ByteArrayInputStream(bytecodeBytes));
 		int accessFlags=0;
