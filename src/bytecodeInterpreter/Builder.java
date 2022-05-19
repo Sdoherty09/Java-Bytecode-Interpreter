@@ -52,6 +52,7 @@ public class Builder {
 	private String javaFile = null;
 	private OpcodeString opcodeString;
 	private Text text_3;
+	private Text text_4;
 	private String cmdResponse(String command)
 	{
 		String response="";
@@ -76,7 +77,37 @@ public class Builder {
 	        }
 	    return response;
 	}
-	
+	private void clearAll()
+	{
+		try
+		{
+			for(int index=1;index<table_1.getItemCount();index++)
+			{
+				table_1.getItem(index).setText("");
+			}
+			Display display = Display.getDefault();
+			table_1.getItem(highlightSelection).setBackground(0, new Color(display, 255, 255, 255));
+			highlightSelection=1;
+			for(int index=1;index<table_3.getItemCount();index++)
+			{
+				table_3.getItem(index).setText("");
+			}
+			table_3.setItemCount(1);
+			for(int index=1;index<table_4.getItemCount();index++)
+			{
+				table_4.getItem(index).setText("");
+			}
+			table_4.setItemCount(1);
+			text_2.setText("");
+			text_4.setText("");
+			
+			variables.clear();
+		}
+		catch(IllegalArgumentException e1)
+		{
+			e1.printStackTrace();
+		}
+	}
 	private String byteToString(byte[] bytes) throws UnsupportedEncodingException
 	{
 		ByteBuffer buffer = ByteBuffer.allocate(bytes.length);
@@ -271,42 +302,75 @@ public class Builder {
 			break;
 		
 		case "istore_1":
-			item=new TableItem(table_4, SWT.NONE);
-			item.setBackground(0, new Color(display, 210, 0, 120));
-			item.setText("Variable 1: "+table_3.getItem(1).getText());
+			if(!variables.containsKey(1))
+			{
+				item=new TableItem(table_4, SWT.NONE);
+				item.setBackground(0, new Color(display, 210, 0, 120));
+				item.setText("Variable 1: "+table_3.getItem(1).getText());		
+			}
+			else
+			{
+				for(int index=0;index<table_4.getItemCount();index++)
+				{
+					if(table_4.getItem(index).getText().startsWith("Variable 1:"))
+					{
+						table_4.getItem(index).setText("Variable 1: "+table_3.getItem(1).getText());
+						table_4.getItem(index).setBackground(0, new Color(display, 210, 0, 120));
+					}
+				}
+			}
 			variables.put(1, Integer.parseInt(table_3.getItem(1).getText()));
 			text_2.setText("Pop the value "+table_3.getItem(1).getText()+" from the stack, storing it in variable 1");
 			table_3.setItemCount(table_3.getItemCount()-1);
 			list=stack.pop();
-			
 			break;
 		case "istore_2":
-			item=new TableItem(table_4, SWT.NONE);
-			item.setBackground(0, new Color(display, 210, 0, 120));
-			item.setText("Variable 2: "+table_3.getItem(1).getText());
+			if(!variables.containsKey(2))
+			{
+				System.out.println("does not contain");
+				item=new TableItem(table_4, SWT.NONE);
+				item.setBackground(0, new Color(display, 210, 0, 120));
+				item.setText("Variable 2: "+table_3.getItem(1).getText());		
+			}
+			else
+			{
+				System.out.println("contain");
+				for(int index=0;index<table_4.getItemCount();index++)
+				{
+					if(table_4.getItem(index).getText().startsWith("Variable 2:"))
+					{
+						table_4.getItem(index).setText("Variable 2: "+table_3.getItem(1).getText());
+						table_4.getItem(index).setBackground(0, new Color(display, 210, 0, 120));
+					}
+				}
+			}
 			variables.put(2, Integer.parseInt(table_3.getItem(1).getText()));
 			text_2.setText("Pop the value "+table_3.getItem(1).getText()+" from the stack, storing it in variable 2");
 			table_3.setItemCount(table_3.getItemCount()-1);
 			list=stack.pop();
-			for(int index=1;index<table_3.getItemCount();index++)
-			{
-				table_3.getItem(index).setText(list.get(index-1));				
-			}
-			
 			break;
 		case "istore_3":
-			item=new TableItem(table_4, SWT.NONE);
-			item.setBackground(0, new Color(display, 210, 0, 120));
-			item.setText("Variable 3: "+table_3.getItem(1).getText());
+			if(!variables.containsKey(3))
+			{
+				item=new TableItem(table_4, SWT.NONE);
+				item.setBackground(0, new Color(display, 210, 0, 120));
+				item.setText("Variable 3: "+table_3.getItem(1).getText());		
+			}
+			else
+			{
+				for(int index=0;index<table_4.getItemCount();index++)
+				{
+					if(table_4.getItem(index).getText().startsWith("Variable 3:"))
+					{
+						table_4.getItem(index).setText("Variable 3: "+table_3.getItem(1).getText());
+						table_4.getItem(index).setBackground(0, new Color(display, 210, 0, 120));
+					}
+				}
+			}
 			variables.put(3, Integer.parseInt(table_3.getItem(1).getText()));
 			text_2.setText("Pop the value "+table_3.getItem(1).getText()+" from the stack, storing it in variable 3");
 			table_3.setItemCount(table_3.getItemCount()-1);
 			list=stack.pop();
-			for(int index=1;index<table_3.getItemCount();index++)
-			{
-				table_3.getItem(index).setText(list.get(index-1));				
-			}
-			
 			break;
 		case "newarray":
 			System.out.println(table_3.getItem(1).getText());
@@ -479,7 +543,7 @@ public class Builder {
 			table_3.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
 			break;
 		case "ldc":
-			list=stack.push(parameter);
+			list=stack.push(parameter.substring(parameter.indexOf(" ")+1));
 			table_3.setItemCount(table_3.getItemCount()+1);
 			for(int index=1;index<table_3.getItemCount();index++)
 			{
@@ -503,20 +567,48 @@ public class Builder {
 			text_2.setText("Jump to step "+parameter);
 			break;
 		case "astore_1":
-			item=new TableItem(table_4, SWT.NONE);
-			item.setBackground(0, new Color(display, 210, 0, 120));
-			item.setText("Variable 1: "+table_3.getItem(1).getText());
+			if(!variables.containsKey(1))
+			{
+				item=new TableItem(table_4, SWT.NONE);
+				item.setBackground(0, new Color(display, 210, 0, 120));
+				item.setText("Variable 1: "+table_3.getItem(1).getText());		
+			}
+			else
+			{
+				for(index=0;index<table_4.getItemCount();index++)
+				{
+					if(table_4.getItem(index).getText().startsWith("Variable 1:"))
+					{
+						table_4.getItem(index).setText("Variable 1: "+table_3.getItem(index).getText());
+						table_4.getItem(index).setBackground(0, new Color(display, 210, 0, 120));
+					}
+				}
+			}
 			variables.put(1, table_3.getItem(1).getText());
 			text_2.setText("Pop the value "+table_3.getItem(1).getText()+" from the stack, storing it in variable 1");
 			table_3.setItemCount(table_3.getItemCount()-1);
 			list=stack.pop();
 			break;
 		case "astore_2":
-			item=new TableItem(table_4, SWT.NONE);
-			item.setBackground(0, new Color(display, 210, 0, 120));
-			item.setText("Variable 2: "+table_3.getItem(1).getText());
-			variables.put(1, table_3.getItem(1).getText());
-			text_2.setText("Pop the value "+table_3.getItem(1).getText()+" from the stack, storing it in variable 1");
+			if(!variables.containsKey(2))
+			{
+				item=new TableItem(table_4, SWT.NONE);
+				item.setBackground(0, new Color(display, 210, 0, 120));
+				item.setText("Variable 2: "+table_3.getItem(1).getText());		
+			}
+			else
+			{
+				for(index=0;index<table_4.getItemCount();index++)
+				{
+					if(table_4.getItem(index).getText().startsWith("Variable 2:"))
+					{
+						table_4.getItem(index).setText("Variable 2: "+table_3.getItem(index).getText());
+						table_4.getItem(index).setBackground(0, new Color(display, 210, 0, 120));
+					}
+				}
+			}
+			variables.put(2, table_3.getItem(1).getText());
+			text_2.setText("Pop the value "+table_3.getItem(1).getText()+" from the stack, storing it in variable 2");
 			table_3.setItemCount(table_3.getItemCount()-1);
 			list=stack.pop();
 			break;
@@ -737,6 +829,22 @@ public class Builder {
 				e1.printStackTrace();
 			}	
 			break;
+		case "invokevirtual":
+			if(parameter.contains("java/io/PrintStream.println:"))
+			{
+				String toPrint=table_3.getItem(1).getText();
+				text_4.insert(toPrint+"\n");
+				text_2.setText("Print "+toPrint+" to the console with a newline");
+			}
+			else if(parameter.contains("java/io/PrintStream.print:"))
+			{
+				String toPrint=table_3.getItem(1).getText();
+				text_4.insert(toPrint);
+				text_2.setText("Print "+toPrint+" to the console");
+			}
+			list=stack.pop();
+			table_3.setItemCount(table_3.getItemCount()-1);
+			break;
 		case "pop":
 			list=stack.pop();
 			table_3.setItemCount(table_3.getItemCount()-1);
@@ -774,6 +882,16 @@ public class Builder {
 				table_3.getItem(index).setText(list.get(index-1));
 			}
 			
+			break;
+		case "iaload":
+			arrayIndex=Integer.parseInt(table_3.getItem(1).getText());
+			iArray=toIntArray(table_3.getItem(2).getText());
+			list=stack.pop();
+			list=stack.pop();
+			list=stack.push(Integer.toString(iArray[arrayIndex]));
+			table_3.setItemCount(table_3.getItemCount()-1);
+			text_2.setText("Push value "+iArray[arrayIndex]+" at index "+arrayIndex+" onto the stack");
+			table_3.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
 			break;
 		/*default:
 			System.out.println("test");
@@ -869,6 +987,7 @@ public class Builder {
 		mntmNewItem.setText("Run");
 		
 		text_1 = new Text(shell, SWT.BORDER | SWT.WRAP | SWT.V_SCROLL);
+		text_1.setToolTipText("Raw Bytecode");
 		text_1.setBounds(10, 50, (int)(shell.getSize().x*0.2491), (int)(shell.getSize().y*0.4));
 		text_1.setEditable(false);
 		
@@ -877,6 +996,7 @@ public class Builder {
 		      public void handleEvent(Event e) {
 		    	  try
 		    	  {
+		    		  clearAll();
 		    		  FileDialog fileDialog = new FileDialog(shell, SWT.MULTI);
 			    	  String[] files= {"*.class", "*.java"};
 			    	  fileDialog.setFilterExtensions(files);
@@ -945,6 +1065,8 @@ public class Builder {
 		
 		TableViewer tableViewer = new TableViewer(shell, SWT.BORDER | SWT.FULL_SELECTION);
 		table_1 = tableViewer.getTable();
+		table_1.setTouchEnabled(true);
+		table_1.setToolTipText("Bytecode");
 		table_1.setBounds(301, 50, 252, 356);
 		formToolkit.paintBordersFor(table_1);
 		table_1.addListener(SWT.EraseItem, new Listener() {
@@ -1093,7 +1215,7 @@ public class Builder {
 				}	
 			}
 		});
-		btnNewButton.setImage(SWTResourceManager.getImage(new File("src/swtbuilder/images/play.png").getAbsolutePath()));
+		btnNewButton.setImage(SWTResourceManager.getImage(new File("images/play.png").getAbsolutePath()));
 		formToolkit.adapt(btnNewButton, true, true);
 		
 		Button button = formToolkit.createButton(shell, "", SWT.NONE);
@@ -1101,31 +1223,7 @@ public class Builder {
 		button.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				try
-				{
-					for(int index=1;index<table_1.getItemCount();index++)
-					{
-						table_1.getItem(index).setText("");
-					}
-					Display display = Display.getDefault();
-					table_1.getItem(highlightSelection).setBackground(0, new Color(display, 255, 255, 255));
-					highlightSelection=1;
-					for(int index=1;index<table_3.getItemCount();index++)
-					{
-						table_3.getItem(index).setText("");
-					}
-					table_3.setItemCount(1);
-					for(int index=1;index<table_4.getItemCount();index++)
-					{
-						table_4.getItem(index).setText("");
-					}
-					table_4.setItemCount(1);
-					text_2.setText("");
-				}
-				catch(IllegalArgumentException e1)
-				{
-					e1.printStackTrace();
-				}
+				clearAll();
 			}
 		});
 		button.setImage(SWTResourceManager.getImage(Builder.class, "/org/eclipse/jface/wizard/images/stop.png"));
@@ -1174,7 +1272,8 @@ public class Builder {
 		
 		TableViewer tableViewer_1 = new TableViewer(shell, SWT.BORDER | SWT.FULL_SELECTION);
 		table_3 = tableViewer_1.getTable();
-		table_3.setBounds((int)(shell.getSize().x*0.51071), 50, (int)(shell.getSize().x*0.22589), (int)(shell.getSize().y*0.58814));
+		table_3.setToolTipText("Stack");
+		table_3.setBounds((int)(shell.getSize().x*0.51), 50, (int)(shell.getSize().x*0.225), (int)(shell.getSize().y*0.4));
 		formToolkit.paintBordersFor(table_3);
 		
 		item1 = new TableItem(table_3, SWT.NONE);
@@ -1188,7 +1287,8 @@ public class Builder {
 		
 		TableViewer tableViewer_1_1 = new TableViewer(shell, SWT.BORDER | SWT.FULL_SELECTION);
 		table_4 = tableViewer_1_1.getTable();
-		table_4.setBounds((int)(shell.getSize().x*0.7491), 50, (int)(shell.getSize().x*0.22589), (int)(shell.getSize().y*0.58814));
+		table_4.setToolTipText("Variables");
+		table_4.setBounds((int)(shell.getSize().x*0.748), 50, (int)(shell.getSize().x*0.225), (int)(shell.getSize().y*0.4));
 		formToolkit.paintBordersFor(table_4);
 		
 		TableCursor tableCursor_1_1 = new TableCursor(table_4, SWT.NONE);
@@ -1201,6 +1301,7 @@ public class Builder {
 	    item1.setFont( boldFont );
 	    
 	    text_2 = new Text(shell, SWT.BORDER | SWT.WRAP);
+	    text_2.setToolTipText("Bytecode Information");
 	    text_2.setBounds((int)(shell.getSize().x*0.26875), (int)(shell.getSize().y*0.6804), (int)(shell.getSize().x*0.22589), (int)(shell.getSize().y*0.1812));
 	    formToolkit.adapt(text_2, true, true);
 	    
@@ -1220,17 +1321,24 @@ public class Builder {
 	    formToolkit.adapt(button_4, true, true);
 	    
 	    text_3 = new Text(shell, SWT.BORDER | SWT.READ_ONLY | SWT.H_SCROLL | SWT.V_SCROLL | SWT.CANCEL);
+	    text_3.setToolTipText("Java Code");
 	    text_3.setBounds(10, (int)(shell.getSize().y*0.5), (int)(shell.getSize().x*0.2482), (int)(shell.getSize().y*0.3641));
 	    formToolkit.adapt(text_3, true, true);
+	    
+	    text_4 = new Text(shell, SWT.BORDER | SWT.READ_ONLY | SWT.H_SCROLL | SWT.V_SCROLL | SWT.CANCEL);
+	    text_4.setToolTipText("Console Output");
+	    text_4.setBounds((int)(shell.getSize().x*0.51), (int)(shell.getSize().y*0.499), (int)(shell.getSize().x*0.463), (int)(shell.getSize().y*0.364));
+	    formToolkit.adapt(text_4, true, true);
 	    shell.addListener (SWT.Resize,  new Listener () {
 		    public void handleEvent (Event e) {
 		    	text_1.setBounds(10, 50, (int)(shell.getSize().x*0.2491), (int)(shell.getSize().y*0.4));
 		    	text_2.setBounds((int)(shell.getSize().x*0.26875), (int)(shell.getSize().y*0.6804), (int)(shell.getSize().x*0.22589), (int)(shell.getSize().y*0.1812));
 		    	text_3.setBounds(10, (int)(shell.getSize().y*0.5), (int)(shell.getSize().x*0.2482), (int)(shell.getSize().y*0.3641));
+		    	text_4.setBounds((int)(shell.getSize().x*0.51), (int)(shell.getSize().y*0.499), (int)(shell.getSize().x*0.463), (int)(shell.getSize().y*0.364));
 		    	table_1.setBounds((int)(shell.getSize().x*0.26875), 50, (int)(shell.getSize().x*0.22589), (int)(shell.getSize().y*0.5881));
 		    	table_2.setBounds((int)(shell.getSize().x*0.26875), 50, (int)(shell.getSize().x*0.22589), (int)(shell.getSize().y*0.5881));
-		    	table_3.setBounds((int)(shell.getSize().x*0.51071), 50, (int)(shell.getSize().x*0.22589), (int)(shell.getSize().y*0.58814));
-		    	table_4.setBounds((int)(shell.getSize().x*0.7491), 50, (int)(shell.getSize().x*0.22589), (int)(shell.getSize().y*0.58814));
+		    	table_3.setBounds((int)(shell.getSize().x*0.51), 50, (int)(shell.getSize().x*0.225), (int)(shell.getSize().y*0.4));
+		    	table_4.setBounds((int)(shell.getSize().x*0.748), 50, (int)(shell.getSize().x*0.225), (int)(shell.getSize().y*0.4));
 		    	
 		    }
 		  });

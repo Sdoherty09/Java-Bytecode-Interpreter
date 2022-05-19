@@ -277,6 +277,9 @@ public class OpcodeString {
 			case 7:
 				temp.add(index+": iconst_4");
 				break;
+			case 46:
+				temp.add(index+": iaload");
+				break;
 			case 188:
 				String toAdd="newarray\t ";
 				switch(bytes[index+1])
