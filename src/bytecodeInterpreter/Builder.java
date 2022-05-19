@@ -46,7 +46,8 @@ public class Builder {
 	int highlightSelection=1;
 	private Table table_3;
 	private Table table_4;
-	private HashMap<Integer, Object> variables;
+	private ArrayList<VariablesTable> variables = new ArrayList<VariablesTable>();
+	ArrayList<StackTable> stack = new ArrayList<StackTable>();
 	private int nextStep=-1;
 	private Text text_2;
 	private String javaFile = null;
@@ -86,7 +87,11 @@ public class Builder {
 				table_1.getItem(index).setText("");
 			}
 			Display display = Display.getDefault();
-			table_1.getItem(highlightSelection).setBackground(0, new Color(display, 255, 255, 255));
+			if(stack==null)
+			{
+				table_1.getItem(highlightSelection).setBackground(0, new Color(display, 255, 255, 255));
+			}
+			
 			highlightSelection=1;
 			for(int index=1;index<table_3.getItemCount();index++)
 			{
@@ -100,8 +105,8 @@ public class Builder {
 			table_4.setItemCount(1);
 			text_2.setText("");
 			text_4.setText("");
-			
-			variables.clear();
+			stack.add(new StackTable());
+			variables.add(new VariablesTable());
 		}
 		catch(IllegalArgumentException e1)
 		{
@@ -152,7 +157,6 @@ public class Builder {
 	}
 	private Object[] toObjectArray(String stringArray)
 	{
-		System.out.println("array: "+stringArray);
 		stringArray=stringArray.substring(stringArray.indexOf("[")+1);
 		ArrayList<Object> arrayList=new ArrayList<Object>();
 		String currentNum=null;
@@ -168,42 +172,66 @@ public class Builder {
 		else arrayList.add(null);
 		return arrayList.toArray();
 	}
-	private void variableReplace(int num, Object replace)
+	
+	private void fillTable(ArrayList<String> list)
 	{
-		variables.replace(num, replace);
-		for(int index=0;index<table_4.getItemCount();index++)
+		if(!table_3.getItem(table_3.getItemCount()-1).getText().equals(""))
 		{
-			if(table_4.getItem(index).getText().contains("Variable "+num+":"))
+			table_3.setItemCount(table_3.getItemCount()+5);
+		}		
+		for(int index=1;index<list.size()+1;index++)
+		{
+			try
 			{
-				table_4.getItem(index).setText("Variable "+num+": "+variables.get(num));
-				Display display = Display.getDefault();
-				table_4.getItem(index).setBackground(0, new Color(display, 210, 0, 120));
+				table_3.getItem(index).setText(list.get(index-1));	
+			}
+			catch(IllegalArgumentException e)
+			{
+				e.printStackTrace();
 			}
 		}
+		for(int index=list.size()+1;index<table_3.getItemCount();index++)
+		{
+			table_3.getItem(index).setText("");
+		}
 	}
-	private void getSelection() throws UnsupportedEncodingException {
+	
+	private void highlightTablePurple(Table table, int index, boolean check)
+	{
+		if(check)
+		{
+			Display display = Display.getDefault();
+			table.getItem(index).setBackground(0, new Color(display, 210, 0, 120));
+		}
+	}
+	private void highlightTablePurple(TableItem item, boolean check)
+	{
+		if(check)
+		{
+			Display display = Display.getDefault();
+			item.setBackground(0, new Color(display, 210, 0, 120));
+		}
+	}
+	private void highlightTableGreen(Table table, int index, boolean check)
+	{
+		if(check)
+		{
+			Display display = Display.getDefault();
+			table.getItem(index).setBackground(0, new Color(display, 0, 255, 0));
+		}
+	}
+	private void getSelection() {
 		String selection = table_1.getItem(highlightSelection).getText();
 		selection = selection.substring(selection.indexOf(':')+2);
 		String parameter = "";
+		boolean check=true;
 		nextStep=-1;
 		if(selection.contains("\t"))
 		{
 			parameter=selection.substring(selection.lastIndexOf("\t")+2);
 			selection=selection.substring(0, selection.indexOf("\t"));
 		}
-		ArrayList<TableItem> tableItems=new ArrayList<TableItem>();
-		for(int index=1;index<table_3.getItemCount();index++)
-		{
-			tableItems.add(table_3.getItem(index));
-		}
 		
-		
-		ArrayList<String> list = new ArrayList<String>();
-		for(int index=0;index<tableItems.size();index++)
-		{
-			list.add(tableItems.get(index).getText());
-		}
-		Stack stack=new Stack(list);
 		TableItem tableItem;
 		String newContent;
 		TableItem item;
@@ -215,174 +243,83 @@ public class Builder {
 		
 		switch(selection) {
 		case "aload_0":
-			list=stack.push((String)variables.get(0));
-			table_3.setItemCount(table_3.getItemCount()+1);
-			table_3.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
-			
-			text_2.setText("Load the value "+variables.get(0)+" from variable 0, pushing it to the stack");
+			stack.get(stack.size()-1).push((String)variables.get(variables.size()-1).get(0));
+			highlightTablePurple(table_3, 1, check);
+			table_3.getItem(1).setBackground(0, new Color(display, 210, 0, 120));		
+			text_2.setText("Load the value "+variables.get(variables.size()-1).get(0)+" from variable 0, pushing it to the stack");
 			break;
 		case "aload_1":
-			list=stack.push((String)variables.get(1));
-			table_3.setItemCount(table_3.getItemCount()+1);
-			table_3.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
-			text_2.setText("Load the value "+variables.get(1)+" from variable 1, pushing it to the stack");
+			stack.get(stack.size()-1).push((String)variables.get(variables.size()-1).get(1));
+			highlightTablePurple(table_3, 1, check);
+			text_2.setText("Load the value "+variables.get(variables.size()-1).get(1)+" from variable 1, pushing it to the stack");
 			break;
 		case "aload_2":
-			list=stack.push((String)variables.get(2));
-			table_3.setItemCount(table_3.getItemCount()+1);
-			table_3.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
-			text_2.setText("Load the value "+variables.get(2)+" from variable 2, pushing it to the stack");
+			stack.get(stack.size()-1).push((String)variables.get(variables.size()-1).get(2));
+			highlightTablePurple(table_3, 1, check);
+			text_2.setText("Load the value "+variables.get(variables.size()-1).get(2)+" from variable 2, pushing it to the stack");
 			break;
 		case "iconst_0":
-			list=stack.push("0");
-			table_3.setItemCount(table_3.getItemCount()+1);
-			for(int index=1;index<table_3.getItemCount();index++)
-			{
-				table_3.getItem(index).setText(list.get(index-1));				
-			}
-			table_3.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
+			stack.get(stack.size()-1).push("0");
+			highlightTablePurple(table_3, 1, check);
 			text_2.setText("Push the value 0 onto the stack");
 			break;
 		case "arraylength":
-			array=toObjectArray(table_3.getItem(1).getText());
-			list=stack.pop();
-			list=stack.push(Integer.toString(array.length));
+			array=toObjectArray(stack.get(stack.size()-1).get(0));
+			stack.get(stack.size()-1).pop();
+			stack.get(stack.size()-1).push(Integer.toString(array.length));
 			text_2.setText("Push the length of the array at the top of the stack");
-			table_3.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
+			highlightTablePurple(table_3, 1, check);
 			break;
 		case "iconst_1":
-			list=stack.push("1");
-			table_3.setItemCount(table_3.getItemCount()+1);
-			for(int index=1;index<table_3.getItemCount();index++)
-			{
-				table_3.getItem(index).setText(list.get(index-1));				
-			}
-			table_3.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
+			stack.get(stack.size()-1).push("1");
+			highlightTablePurple(table_3, 1, check);
 			text_2.setText("Push the value 1 onto the stack");
 			break;
 		case "iconst_2":
-			list=stack.push("2");
-			table_3.setItemCount(table_3.getItemCount()+1);
-			for(int index=1;index<table_3.getItemCount();index++)
-			{
-				table_3.getItem(index).setText(list.get(index-1));				
-			}
-			table_3.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
+			stack.get(stack.size()-1).push("2");
+			highlightTablePurple(table_3, 1, check);
 			text_2.setText("Push the value 2 onto the stack");
 			break;
 		case "iconst_3":
-			list=stack.push("3");
-			table_3.setItemCount(table_3.getItemCount()+1);
-			for(int index=1;index<table_3.getItemCount();index++)
-			{
-				table_3.getItem(index).setText(list.get(index-1));				
-			}
-			table_3.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
+			stack.get(stack.size()-1).push("3");
+			highlightTablePurple(table_3, 1, check);
 			text_2.setText("Push the value 3 onto the stack");
 			break;
 		case "iconst_4":
-			list=stack.push("4");
-			table_3.setItemCount(table_3.getItemCount()+1);
-			for(int index=1;index<table_3.getItemCount();index++)
-			{
-				table_3.getItem(index).setText(list.get(index-1));				
-			}
-			table_3.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
+			stack.get(stack.size()-1).push("4");
+			highlightTablePurple(table_3, 1, check);
 			text_2.setText("Push the value 4 onto the stack");
 			break;
 		case "iconst_5":
-			list=stack.push("5");
-			table_3.setItemCount(table_3.getItemCount()+1);
-			for(int index=1;index<table_3.getItemCount();index++)
-			{
-				table_3.getItem(index).setText(list.get(index-1));				
-			}
-			table_3.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
+			stack.get(stack.size()-1).push("5");
+			highlightTablePurple(table_3, 1, check);
 			text_2.setText("Push the value 5 onto the stack");
 			break;
 		
 		case "istore_1":
-			if(!variables.containsKey(1))
-			{
-				item=new TableItem(table_4, SWT.NONE);
-				item.setBackground(0, new Color(display, 210, 0, 120));
-				item.setText("Variable 1: "+table_3.getItem(1).getText());		
-			}
-			else
-			{
-				for(int index=0;index<table_4.getItemCount();index++)
-				{
-					if(table_4.getItem(index).getText().startsWith("Variable 1:"))
-					{
-						table_4.getItem(index).setText("Variable 1: "+table_3.getItem(1).getText());
-						table_4.getItem(index).setBackground(0, new Color(display, 210, 0, 120));
-					}
-				}
-			}
-			variables.put(1, Integer.parseInt(table_3.getItem(1).getText()));
+			variables.get(variables.size()-1).put(1, Integer.parseInt(table_3.getItem(1).getText()));
+			highlightTablePurple(table_4, 1, check); //TODO: doesnt work with nothing on stack
 			text_2.setText("Pop the value "+table_3.getItem(1).getText()+" from the stack, storing it in variable 1");
-			table_3.setItemCount(table_3.getItemCount()-1);
-			list=stack.pop();
+			stack.get(stack.size()-1).pop();
 			break;
 		case "istore_2":
-			if(!variables.containsKey(2))
-			{
-				System.out.println("does not contain");
-				item=new TableItem(table_4, SWT.NONE);
-				item.setBackground(0, new Color(display, 210, 0, 120));
-				item.setText("Variable 2: "+table_3.getItem(1).getText());		
-			}
-			else
-			{
-				System.out.println("contain");
-				for(int index=0;index<table_4.getItemCount();index++)
-				{
-					if(table_4.getItem(index).getText().startsWith("Variable 2:"))
-					{
-						table_4.getItem(index).setText("Variable 2: "+table_3.getItem(1).getText());
-						table_4.getItem(index).setBackground(0, new Color(display, 210, 0, 120));
-					}
-				}
-			}
-			variables.put(2, Integer.parseInt(table_3.getItem(1).getText()));
+			variables.get(variables.size()-1).getVariableItems().put(2, Integer.parseInt(table_3.getItem(1).getText()));
 			text_2.setText("Pop the value "+table_3.getItem(1).getText()+" from the stack, storing it in variable 2");
-			table_3.setItemCount(table_3.getItemCount()-1);
-			list=stack.pop();
+			highlightTablePurple(table_4, 1, check);
+			stack.get(stack.size()-1).pop();
 			break;
 		case "istore_3":
-			if(!variables.containsKey(3))
-			{
-				item=new TableItem(table_4, SWT.NONE);
-				item.setBackground(0, new Color(display, 210, 0, 120));
-				item.setText("Variable 3: "+table_3.getItem(1).getText());		
-			}
-			else
-			{
-				for(int index=0;index<table_4.getItemCount();index++)
-				{
-					if(table_4.getItem(index).getText().startsWith("Variable 3:"))
-					{
-						table_4.getItem(index).setText("Variable 3: "+table_3.getItem(1).getText());
-						table_4.getItem(index).setBackground(0, new Color(display, 210, 0, 120));
-					}
-				}
-			}
-			variables.put(3, Integer.parseInt(table_3.getItem(1).getText()));
+			variables.get(variables.size()-1).getVariableItems().put(3, Integer.parseInt(table_3.getItem(1).getText()));
 			text_2.setText("Pop the value "+table_3.getItem(1).getText()+" from the stack, storing it in variable 3");
-			table_3.setItemCount(table_3.getItemCount()-1);
-			list=stack.pop();
+			highlightTablePurple(table_4, 1, check);
+			stack.get(stack.size()-1).pop();
 			break;
 		case "newarray":
-			System.out.println(table_3.getItem(1).getText());
 			array = new Object[Integer.parseInt(table_3.getItem(1).getText())];
-			list=stack.pop();
-			list=stack.push(arrayString(array));
+			stack.get(stack.size()-1).pop();
+			stack.get(stack.size()-1).push(arrayString(array));
 			text_2.setText("Create a new array of type "+parameter);
-			for(int index=1;index<table_3.getItemCount();index++)
-			{
-				table_3.getItem(index).setText(list.get(index-1));				
-			}
-			table_3.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
+			highlightTablePurple(table_3, 1, check);
 			//
 			/*switch(parameter)
 			{
@@ -414,70 +351,40 @@ public class Builder {
 			}*/
 			break;
 		case "iload_0":
-			list=stack.push(Integer.toString((int)variables.get(0)));
-			table_3.setItemCount(table_3.getItemCount()+1);
-			for(int index=1;index<table_3.getItemCount();index++)
-			{
-				table_3.getItem(index).setText(list.get(index-1));			
-			}
-			table_3.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
+			stack.get(stack.size()-1).push(Integer.toString((int)variables.get(variables.size()-1).get(0)));
+			highlightTablePurple(table_3, 1, check);
 			text_2.setText("Load the value "+variables.get(1)+" from variable 0, pushing it to the stack");
 			System.out.println("iload: "+table_3.getItem(1));
 			break;
 		case "iload_1":
-			list=stack.push(Integer.toString((int)variables.get(1)));
-			table_3.setItemCount(table_3.getItemCount()+1);
-			for(int index=1;index<table_3.getItemCount();index++)
-			{
-				table_3.getItem(index).setText(list.get(index-1));			
-			}
-			table_3.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
-			text_2.setText("Load the value "+variables.get(1)+" from variable 1, pushing it to the stack");
+			stack.get(stack.size()-1).push(Integer.toString((int)variables.get(variables.size()-1).get(1)));
+			highlightTablePurple(table_3, 1, check);
+			text_2.setText("Load the value "+variables.get(variables.size()-1).get(1)+" from variable 1, pushing it to the stack");
 			break;
 		case "iload_2":
-			list=stack.push(Integer.toString((int)variables.get(2)));
-			table_3.setItemCount(table_3.getItemCount()+1);
-			for(int index=1;index<table_3.getItemCount();index++)
-			{
-				table_3.getItem(index).setText(list.get(index-1));			
-			}
-			table_3.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
-			text_2.setText("Load the value "+variables.get(2)+" from variable 2, pushing it to the stack");
+			stack.get(stack.size()-1).push(Integer.toString((int)variables.get(variables.size()-1).get(2)));
+			highlightTablePurple(table_3, 1, check);
+			text_2.setText("Load the value "+variables.get(variables.size()-1).get(2)+" from variable 2, pushing it to the stack");
 			break;
 		case "iload_3":
-			list=stack.push(Integer.toString((int)variables.get(3)));
-			table_3.setItemCount(table_3.getItemCount()+1);
-			for(int index=1;index<table_3.getItemCount();index++)
-			{
-				table_3.getItem(index).setText(list.get(index-1));			
-			}
-			table_3.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
-			text_2.setText("Load the value "+variables.get(3)+" from variable 3, pushing it to the stack");
+			stack.get(stack.size()-1).push(Integer.toString((int)variables.get(variables.size()-1).get(3)));
+			highlightTablePurple(table_3, 1, check);
+			text_2.setText("Load the value "+variables.get(variables.size()-1).get(3)+" from variable 3, pushing it to the stack");
 			break;
 		case "bipush":
-			list=stack.push(parameter);
-			table_3.setItemCount(table_3.getItemCount()+1);
-			for(int index=1;index<table_3.getItemCount();index++)
-			{
-				table_3.getItem(index).setText(list.get(index-1));
-			}
-			table_3.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
+			stack.get(stack.size()-1).push(parameter);
+			highlightTablePurple(table_3, 1, check);
 			text_2.setText("Push the byte "+parameter+" onto the stack");
 			break;
 		case "invokespecial":
-			list=stack.push(parameter);
-			table_3.setItemCount(table_3.getItemCount()+1);
-			for(int index=1;index<table_3.getItemCount();index++)
-			{
-				table_3.getItem(index).setText(list.get(index-1));
-			}
-			table_3.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
+			stack.get(stack.size()-1).push(parameter);
+			highlightTablePurple(table_3, 1, check);
 			break;
 		case "if_icmpge":
-			num1 = Integer.parseInt(list.get(0));
-			list=stack.pop();
-			num2 = Integer.parseInt(list.get(0));
-			list=stack.pop();
+			num1 = Integer.parseInt(stack.get(stack.size()-1).get(0));
+			stack.get(stack.size()-1).pop();
+			num2 = Integer.parseInt(stack.get(stack.size()-1).get(0));
+			stack.get(stack.size()-1).pop();
 			if(num2>=num1)
 			{
 				int index=highlightSelection;
@@ -485,26 +392,21 @@ public class Builder {
 				{
 					index++;			
 				}
-				table_1.getItem(index).setBackground(0, new Color(display, 0, 255, 0));
+				highlightTableGreen(table_1, index, check);
 				nextStep=index;
 			}
 			else
 			{
 				nextStep=highlightSelection+1;
-				table_1.getItem(nextStep).setBackground(0, new Color(display, 0, 255, 0));
-			}
-			table_3.setItemCount(table_3.getItemCount()-2);
-			for(int index=1;index<table_3.getItemCount();index++)
-			{
-				table_3.getItem(index).setText(list.get(index-1));
+				highlightTableGreen(table_1, nextStep, check);
 			}
 			text_2.setText("Check if "+num2+" is greater or equal to "+num1+", jumping to step "+parameter+" if so");
 			break;
 		case "if_icmpgt":
-			num1 = Integer.parseInt(list.get(0));
-			list=stack.pop();
-			num2 = Integer.parseInt(list.get(0));
-			list=stack.pop();
+			num1 = Integer.parseInt(stack.get(stack.size()-1).get(0));
+			stack.get(stack.size()-1).pop();
+			num2 = Integer.parseInt(stack.get(stack.size()-1).get(0));
+			stack.get(stack.size()-1).pop();
 			if(num2>num1)
 			{
 				int index=highlightSelection;
@@ -512,44 +414,29 @@ public class Builder {
 				{
 					index++;			
 				}
-				table_1.getItem(index).setBackground(0, new Color(display, 0, 255, 0));
+				highlightTableGreen(table_1, index, check);
 				nextStep=index;
 			}
 			else
 			{
 				nextStep=highlightSelection+1;
-				table_1.getItem(nextStep).setBackground(0, new Color(display, 0, 255, 0));
-			}
-			table_3.setItemCount(table_3.getItemCount()-2);
-			for(int index=1;index<table_3.getItemCount();index++)
-			{
-				table_3.getItem(index).setText(list.get(index-1));
+				highlightTableGreen(table_1, nextStep, check);
 			}
 			text_2.setText("Check if "+num2+" is greater than "+num1+", jumping to step "+parameter+" if so");
 			break;
 		case "iinc":
 			num1=Integer.parseInt(parameter.substring(0,parameter.indexOf(",")));
 			num2=Integer.parseInt(parameter.substring(parameter.indexOf(" ")+1,parameter.length()));
-			variableReplace(num1, (Object)((int)variables.get(num1)+num2));
+			variables.get(variables.size()-1).replace(num1, (Object)((int)variables.get(variables.size()-1).get(num1)+num2));
 			text_2.setText("Increment the value stored in variable "+num1+" by "+num2);
 			break;
 		case "getstatic":
-			list=stack.push(parameter);
-			table_3.setItemCount(table_3.getItemCount()+1);
-			for(int index=1;index<table_3.getItemCount();index++)
-			{
-				table_3.getItem(index).setText(list.get(index-1));
-			}
-			table_3.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
+			stack.get(stack.size()-1).push(parameter);
+			highlightTablePurple(table_3, 1, check);
 			break;
 		case "ldc":
-			list=stack.push(parameter.substring(parameter.indexOf(" ")+1));
-			table_3.setItemCount(table_3.getItemCount()+1);
-			for(int index=1;index<table_3.getItemCount();index++)
-			{
-				table_3.getItem(index).setText(list.get(index-1));
-			}
-			table_3.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
+			stack.get(stack.size()-1).push(parameter.substring(parameter.indexOf(" ")+1));
+			highlightTablePurple(table_3, 1, check);
 			break;
 		case "goto":
 			int index=highlightSelection;
@@ -562,15 +449,15 @@ public class Builder {
 			{
 				while(!table_1.getItem(index).getText().startsWith(parameter+":")) index++;
 			}
-			table_1.getItem(index).setBackground(0, new Color(display, 0, 255, 0));
+			highlightTableGreen(table_1, index, check);
 			nextStep=index;
 			text_2.setText("Jump to step "+parameter);
 			break;
 		case "astore_1":
-			if(!variables.containsKey(1))
+			if(!variables.get(variables.size()-1).getVariableItems().containsKey(1))
 			{
 				item=new TableItem(table_4, SWT.NONE);
-				item.setBackground(0, new Color(display, 210, 0, 120));
+				highlightTablePurple(item, check);
 				item.setText("Variable 1: "+table_3.getItem(1).getText());		
 			}
 			else
@@ -580,20 +467,19 @@ public class Builder {
 					if(table_4.getItem(index).getText().startsWith("Variable 1:"))
 					{
 						table_4.getItem(index).setText("Variable 1: "+table_3.getItem(index).getText());
-						table_4.getItem(index).setBackground(0, new Color(display, 210, 0, 120));
+						highlightTablePurple(table_4, index, check);
 					}
 				}
 			}
-			variables.put(1, table_3.getItem(1).getText());
+			variables.get(variables.size()-1).getVariableItems().put(1, table_3.getItem(1).getText());
 			text_2.setText("Pop the value "+table_3.getItem(1).getText()+" from the stack, storing it in variable 1");
-			table_3.setItemCount(table_3.getItemCount()-1);
-			list=stack.pop();
+			stack.get(stack.size()-1).pop();
 			break;
 		case "astore_2":
-			if(!variables.containsKey(2))
+			if(!variables.get(variables.size()-1).getVariableItems().containsKey(2))
 			{
 				item=new TableItem(table_4, SWT.NONE);
-				item.setBackground(0, new Color(display, 210, 0, 120));
+				highlightTablePurple(item, check);
 				item.setText("Variable 2: "+table_3.getItem(1).getText());		
 			}
 			else
@@ -603,29 +489,27 @@ public class Builder {
 					if(table_4.getItem(index).getText().startsWith("Variable 2:"))
 					{
 						table_4.getItem(index).setText("Variable 2: "+table_3.getItem(index).getText());
-						table_4.getItem(index).setBackground(0, new Color(display, 210, 0, 120));
+						highlightTablePurple(table_4, index, check);
 					}
 				}
 			}
-			variables.put(2, table_3.getItem(1).getText());
+			variables.get(variables.size()-1).getVariableItems().put(2, table_3.getItem(1).getText());
 			text_2.setText("Pop the value "+table_3.getItem(1).getText()+" from the stack, storing it in variable 2");
-			table_3.setItemCount(table_3.getItemCount()-1);
-			list=stack.pop();
+			stack.get(stack.size()-1).pop();
 			break;
 		case "irem":
 			num1=Integer.parseInt(table_3.getItem(1).getText());
 			num2=Integer.parseInt(table_3.getItem(2).getText());
-			list=stack.pop();
+			stack.get(stack.size()-1).pop();
 			System.out.println("num1: "+num1+" num2: "+num2);
-			list=stack.pop();
-			list=stack.push(Integer.toString(num1%num2));
-			table_3.setItemCount(table_3.getItemCount()-1);
+			stack.get(stack.size()-1).pop();
+			stack.get(stack.size()-1).push(Integer.toString(num1%num2));
 			text_2.setText("Get the remainder of "+num1+" divided by "+num2);
 			break;
 		case "ifne":
 			num1 = Integer.parseInt(parameter);
-			num2 = Integer.parseInt(list.get(0));
-			list=stack.pop();
+			num2 = Integer.parseInt(stack.get(stack.size()-1).get(0));
+			stack.get(stack.size()-1).pop();
 			if(num2!=num1)
 			{
 				index=highlightSelection;
@@ -633,201 +517,28 @@ public class Builder {
 				{
 					index++;			
 				}
-				table_1.getItem(index).setBackground(0, new Color(display, 0, 255, 0));
+				highlightTableGreen(table_1, index, check);
 				nextStep=index;
 			}
 			else
 			{
 				nextStep=highlightSelection+1;
-				table_1.getItem(nextStep).setBackground(0, new Color(display, 0, 255, 0));
+				highlightTableGreen(table_1, nextStep, check);
 			}
-			table_3.setItemCount(table_3.getItemCount()-1);
 			for(index=1;index<table_3.getItemCount();index++)
 			{
-				table_3.getItem(index).setText(list.get(index-1));
+				table_3.getItem(index).setText(stack.get(stack.size()-1).get(index-1));
 			}
 			text_2.setText("Check if "+num2+" is not equal to "+num1+", jumping to step "+parameter+" if so");
 			break;
 		case "dup":
 			System.out.println(table_3.getItem(1).getText());
-			list=stack.push(table_3.getItem(1).getText());
+			stack.get(stack.size()-1).push(table_3.getItem(1).getText());
 			text_2.setText("Duplicate the top value of the stack");
-			table_3.setItemCount(table_3.getItemCount()+1);
-			table_3.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
-			for(index=1;index<table_3.getItemCount();index++)
-			{
-				table_3.getItem(index).setText(list.get(index-1));				
-			}
+			highlightTablePurple(table_3, 1, check);
 			break;
 		case "invokestatic":
-			HashMap<Integer, Object> variables_temp = variables;
-			variables=new HashMap<Integer, Object>();
-			variables.put(0, Integer.parseInt(table_3.getItem(1).getText()));
-			list=stack.pop();
-			String text_1_temp = text_1.getText();
-			String text_2_temp = text_2.getText();
-			TableItem[] table_1_temp = table_1.getItems();
-			String[] table_1_text = new String[table_1_temp.length];
-			for(index=0;index<table_1_text.length;index++)
-			{
-				table_1_text[index]=table_1_temp[index].getText();
-			}
-			table_1.setItemCount(1);
-			TableItem[] table_2_temp = table_2.getItems();
-			String[] table_2_text = new String[table_2_temp.length];
-			for(index=0;index<table_2_text.length;index++)
-			{
-				table_2_text[index]=table_2_temp[index].getText();
-			}
-			table_2.setItemCount(1);
-			TableItem[] table_3_temp = table_3.getItems();
-			String[] table_3_text = new String[table_3_temp.length];
-			for(index=0;index<table_3_text.length;index++)
-			{
-				table_3_text[index]=table_3_temp[index].getText();
-			}
-			table_3.setItemCount(1);
-			TableItem[] table_4_temp = table_4.getItems();
-			String[] table_4_text = new String[table_4_temp.length];
-			for(index=0;index<table_4_text.length;index++)
-			{
-				table_4_text[index]=table_4_temp[index].getText();
-			}
-			table_4.setItemCount(1);
-			ArrayList<String> list_temp=list;
-			list=new ArrayList<String>();
-			Stack stack_temp=stack;
-			stack=new Stack(list);
-			OpcodeString opcodeString_temp=opcodeString;
-			int highlightSelection_temp = highlightSelection;
-			highlightSelection=1;
-			ConstantPool[] constantPoolTemp = BytecodeParse.constantPool;
-			byte[] bytes_temp = null;
-			BytecodeParse bytecodeParse_temp = null;
-			String parameter_temp=parameter;
-			System.out.println(parameter.substring(parameter.indexOf("."),parameter.indexOf(":")));
-			for(int j=0;j<bytecodeParse.getCodeBytes().size();j++)
-			{
-				System.out.println(bytecodeParse.getClassNames().get(bytecodeParse.getCodeBytes().get(j)));
-				if(bytecodeParse.getClassNames().get(bytecodeParse.getCodeBytes().get(j)).contains(parameter.substring(parameter.indexOf(".")+1,parameter.indexOf(":"))))
-				{
-					System.out.println("YES");
-					bytecodeParse_temp = new BytecodeParse(bytecodeParse.getCodeBytes().get(j));
-					bytes_temp=bytecodeParse.getCodeBytes().get(j);
-					try {
-						bytecodeParse_temp.parse();
-					} catch (IOException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
-					break;
-				}
-			}
-			tableItems = new ArrayList<TableItem>();
-			try
-			{
-				ArrayList<byte[]> codeBytes_temp=bytecodeParse_temp.getCodeBytes();
-						opcodeString=new OpcodeString(bytes_temp);
-						
-						ArrayList<String> tableBytecode = opcodeString.stringify();
-						for(int j=0;j<tableBytecode.size();j++)
-						{
-							tableItem=new TableItem(table_1, SWT.NONE);
-							tableItem.setText(tableBytecode.get(j));
-							tableItems.add(tableItem);
-						}
-						tableItem=new TableItem(table_1, SWT.NONE);
-						tableItem.setText("");
-						tableItems.add(tableItem);
-				/*ArrayList<ArrayList<String>> opcodes=BytecodeParse.opcodes;
-				tableItems = new ArrayList<TableItem>();
-				for(int index=1;index<opcodes.size();index++)
-				{
-					for(int j=1;j<opcodes.get(index).size();j++)
-					{
-						TableItem tableItem=new TableItem(table, SWT.NONE);
-						tableItem.setText(opcodes.get(index).get(j));
-						tableItems.add(tableItem);
-					}
-					
-				}*/
-				display = Display.getDefault();
-				highlightSelection=0;
-				table_1.getItem(highlightSelection).setBackground(0, new Color(display, 255, 0, 0));
-				//System.out.println("test "+byteToString(BytecodeParse.constantPool[(int)bytecodeParse.getCodeMethods().get(0).getAttributes()[0].getInfo()[0]-1].getBytes()));
-				//byteToString(constantPool[constantPool[thisClass-1].getInfo()[0]-1].getBytes()));
-				while(!table_1.getItem(highlightSelection).getText().contains("return"))
-				{
-					for(int j=0;j<table_3.getItemCount();j++)
-					{
-						table_3.getItem(j).setBackground(0, new Color(display, 255, 255, 255));
-					}
-					for(int j=0;j<table_4.getItemCount();j++)
-					{
-						table_4.getItem(j).setBackground(0, new Color(display, 255, 255, 255));
-					}	
-					if(table_1.getItemCount()!=1&&highlightSelection<table_1.getItemCount()-2)
-					{
-						display = Display.getDefault();
-						table_1.getItem(highlightSelection).setBackground(0, new Color(display, 255, 255, 255));
-						if(nextStep!=-1)
-						{
-							highlightSelection=nextStep;
-						}						
-						else
-						{
-							if(table_1.getItem(highlightSelection+1).getText().equals("")) highlightSelection+=2;
-							else highlightSelection++;
-						}
-						
-						table_1.getItem(highlightSelection).setBackground(0, new Color(display, 255, 0, 0));
-						try {
-							getSelection();
-						} catch (UnsupportedEncodingException e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
-						}
-					}
-				}
-				String returnValue=table_1.getItem(highlightSelection).getText();
-				text_1.setText(text_1_temp);
-				text_2.setText(text_2_temp);
-				table_1.setItemCount(table_1_text.length);
-				for(index=0;index<table_1.getItemCount();index++)
-				{
-					table_1.getItem(index).setText(table_1_text[index]);
-				}
-				table_2.setItemCount(table_2_text.length);
-				for(index=0;index<table_2.getItemCount();index++)
-				{
-					table_2.getItem(index).setText(table_2_text[index]);
-				}
-				/*table_3.setItemCount(table_3_text.length);
-				for(index=0;index<table_3.getItemCount();index++)
-				{
-					table_3.getItem(index).setText(table_3_text[index]);
-				}*/
-				table_4.setItemCount(table_4_text.length);
-				for(index=0;index<table_4.getItemCount();index++)
-				{
-					table_4.getItem(index).setText(table_4_text[index]);
-				}
-				variables = variables_temp;
-				opcodeString = opcodeString_temp;
-				//table_1.getItem(highlightSelection).setBackground(0, new Color(display, 255, 255, 255));
-				highlightSelection = highlightSelection_temp;
-				//table_1.getItem(highlightSelection).setBackground(0, new Color(display, 255, 0, 0));
-				BytecodeParse.constantPool = constantPoolTemp;
-				list=list_temp;
-				list=stack.push(returnValue);
-				stack=stack_temp;
-				parameter=parameter_temp;
-				text_2.setText("Invoke the static method " + parameter);
-			}
-			catch(NullPointerException | UnsupportedEncodingException e1)
-			{
-				e1.printStackTrace();
-			}	
+			
 			break;
 		case "invokevirtual":
 			if(parameter.contains("java/io/PrintStream.println:"))
@@ -842,56 +553,46 @@ public class Builder {
 				text_4.insert(toPrint);
 				text_2.setText("Print "+toPrint+" to the console");
 			}
-			list=stack.pop();
-			table_3.setItemCount(table_3.getItemCount()-1);
+			stack.get(stack.size()-1).pop();
 			break;
 		case "pop":
-			list=stack.pop();
-			table_3.setItemCount(table_3.getItemCount()-1);
+			stack.get(stack.size()-1).pop();
 			text_2.setText("Pop the top value from the stack");
 			break;
 		case "iastore":
-			int arrayValue=Integer.parseInt(table_3.getItem(1).getText());
-			int arrayIndex=Integer.parseInt(table_3.getItem(2).getText());
-			Integer[] iArray=toIntArray(table_3.getItem(3).getText());
+			int arrayValue=Integer.parseInt(stack.get(stack.size()-1).get(0));
+			int arrayIndex=Integer.parseInt(stack.get(stack.size()-1).get(1));
+			Integer[] iArray=toIntArray(stack.get(stack.size()-1).get(2));			
 			int variableNum=0;
-			for(index=1;index<variables.size();index++)
+			for(index=1;index<variables.get(variables.size()-1).getLength();index++)
 			{
-				//System.out.println(((String)variables.get(index)).substring(((String)variables.get(index)).indexOf(":")+1));
-				if(((String)variables.get(index)).substring(((String)variables.get(index)).indexOf(":")+1).equals(table_3.getItem(3).getText()))
+				
+				if(((String)variables.get(variables.size()-1).get(index)).substring((variables.get(variables.size()-1).get(index).toString()).indexOf(":")+1).equals(arrayString(iArray)))
 				{
-					System.out.println("getting here");
 					variableNum=index;
 				}
 			}
-			list=stack.pop();
-			list=stack.pop();
-			list=stack.pop();			
+			stack.get(stack.size()-1).pop();
+			stack.get(stack.size()-1).pop();
+			stack.get(stack.size()-1).pop();
 			iArray[arrayIndex]=arrayValue;
 			Object[] objectArray=new Object[iArray.length];
 			for(index=0;index<objectArray.length;index++)
 			{
 				objectArray[index]=(Object)iArray[index];
 			}
-			list=stack.push(arrayString(objectArray));
-			variableReplace(variableNum, arrayString(objectArray));
+			variables.get(variables.size()-1).replace(variableNum, arrayString(objectArray));
 			text_2.setText("Store value "+arrayValue+" into index "+arrayIndex);
-			table_3.setItemCount(table_3.getItemCount()-3);
-			for(index=1;index<table_3.getItemCount();index++)
-			{
-				table_3.getItem(index).setText(list.get(index-1));
-			}
 			
 			break;
 		case "iaload":
 			arrayIndex=Integer.parseInt(table_3.getItem(1).getText());
 			iArray=toIntArray(table_3.getItem(2).getText());
-			list=stack.pop();
-			list=stack.pop();
-			list=stack.push(Integer.toString(iArray[arrayIndex]));
-			table_3.setItemCount(table_3.getItemCount()-1);
+			stack.get(stack.size()-1).pop();
+			stack.get(stack.size()-1).pop();
+			stack.get(stack.size()-1).push(Integer.toString(iArray[arrayIndex]));
 			text_2.setText("Push value "+iArray[arrayIndex]+" at index "+arrayIndex+" onto the stack");
-			table_3.getItem(1).setBackground(0, new Color(display, 210, 0, 120));
+			highlightTablePurple(table_3, 1, check);
 			break;
 		/*default:
 			System.out.println("test");
@@ -902,9 +603,12 @@ public class Builder {
 			table_2.setItemCount(1);
 			break;*/
 		}
-		for(int index=1;index<table_3.getItemCount();index++)
+		fillTable(stack.get(stack.size()-1).getStackItems());
+		table_4.setItemCount(variables.get(variables.size()-1).getLength()+1);
+
+		for(int index=1;index<table_4.getItemCount();index++)
 		{
-			table_3.getItem(index).setText(list.get(index-1));				
+			table_4.getItem(index).setText("Variable "+index+": "+variables.get(variables.size()-1).get(index).toString());
 		}
 	}
 	
@@ -947,11 +651,12 @@ public class Builder {
 	 * Create contents of the window.
 	 */
 	protected void createContents() {
+		
+		
 		shell = new Shell();
 		shell.setSize(1120, 607);
 		shell.setText("Bytecode Interpreter");
 		
-		variables = new HashMap<Integer, Object>();
 		shell.setLayout(null);
 		
 		Menu menu = new Menu(shell, SWT.BAR);
@@ -1003,8 +708,6 @@ public class Builder {
 			    	  String filePath = fileDialog.open();
 			    	  if(filePath.endsWith(".java"))
 			    	  {
-			    		  System.out.println(filePath.substring(0, filePath.lastIndexOf("\\")+1));
-			    		  System.out.println(cmdResponse("cd /d "+filePath.substring(0, filePath.lastIndexOf("\\")+1)+" && javac "+filePath.substring(filePath.lastIndexOf("\\")+1)));
 			    		  javaFile=ReadWrite.toString(filePath);
 			    		  filePath=filePath.replace(".java", ".class");
 			    	  }
@@ -1118,12 +821,7 @@ public class Builder {
 									}
 									
 									table_1.getItem(highlightSelection).setBackground(0, new Color(display, 255, 0, 0));
-									try {
-										getSelection();
-									} catch (UnsupportedEncodingException e1) {
-										// TODO Auto-generated catch block
-										e1.printStackTrace();
-									}
+									getSelection();
 								}
 								selected=table_1.getItem(highlightSelection);
 							}
@@ -1159,11 +857,12 @@ public class Builder {
 		btnNewButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				clearAll();
 				for(int index=1;index<table_3.getItemCount();index++)
 				{
 					table_3.getItem(index).setText("");
 				}
-				table_3.setItemCount(1);
+				table_3.setItemCount(5);
 				ArrayList<TableItem> tableItems = null;
 				table_1.setItemCount(1);
 				TableItem tableItem;
@@ -1258,12 +957,7 @@ public class Builder {
 					}
 					
 					table_1.getItem(highlightSelection).setBackground(0, new Color(display, 255, 0, 0));
-					try {
-						getSelection();
-					} catch (UnsupportedEncodingException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
+					getSelection();
 				}
 				
 			}
