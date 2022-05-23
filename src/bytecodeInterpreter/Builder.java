@@ -43,7 +43,7 @@ public class Builder {
 	private Table table_1;
 	private Table table_2;
 	private BytecodeParse bytecodeParse;
-	int highlightSelection=1;
+	ArrayList<Integer> highlightSelection;
 	private Table table_3;
 	private Table table_4;
 	private ArrayList<VariablesTable> variables = new ArrayList<VariablesTable>();
@@ -51,7 +51,7 @@ public class Builder {
 	private int nextStep=-1;
 	private Text text_2;
 	private String javaFile = null;
-	private OpcodeString opcodeString;
+	private ArrayList<OpcodeString> opcodeString;
 	private Text text_3;
 	private Text text_4;
 	private String cmdResponse(String command)
@@ -82,6 +82,8 @@ public class Builder {
 	{
 		try
 		{
+			highlightSelection=new ArrayList<Integer>();
+			opcodeString=new ArrayList<OpcodeString>();
 			for(int index=1;index<table_1.getItemCount();index++)
 			{
 				table_1.getItem(index).setText("");
@@ -89,10 +91,10 @@ public class Builder {
 			Display display = Display.getDefault();
 			if(stack==null)
 			{
-				table_1.getItem(highlightSelection).setBackground(0, new Color(display, 255, 255, 255));
+				table_1.getItem(highlightSelection.get(highlightSelection.size()-1)).setBackground(0, new Color(display, 255, 255, 255));
 			}
 			
-			highlightSelection=1;
+			highlightSelection.add(1);
 			for(int index=1;index<table_3.getItemCount();index++)
 			{
 				table_3.getItem(index).setText("");
@@ -196,11 +198,32 @@ public class Builder {
 		}
 	}
 	
+	private void fillTable(Table table, ArrayList<String> list)
+	{
+		table.setItemCount(list.size()+2);
+		for(int index=1;index<list.size()+1;index++)
+		{
+			try
+			{
+				table.getItem(index).setText(list.get(index-1));	
+			}
+			catch(IllegalArgumentException e)
+			{
+				e.printStackTrace();
+			}
+		}
+		for(int index=list.size()+1;index<table.getItemCount();index++)
+		{
+			table.getItem(index).setText("");
+		}
+	}
+	
 	private void highlightTablePurple(Table table, int index, boolean check)
 	{
 		if(check)
 		{
 			Display display = Display.getDefault();
+			if(table.getItemCount()==1) table.setItemCount(2);
 			table.getItem(index).setBackground(0, new Color(display, 210, 0, 120));
 		}
 	}
@@ -221,7 +244,7 @@ public class Builder {
 		}
 	}
 	private void getSelection() {
-		String selection = table_1.getItem(highlightSelection).getText();
+		String selection = table_1.getItem(highlightSelection.get(highlightSelection.size()-1)).getText();
 		selection = selection.substring(selection.indexOf(':')+2);
 		String parameter = "";
 		boolean check=true;
@@ -387,7 +410,7 @@ public class Builder {
 			stack.get(stack.size()-1).pop();
 			if(num2>=num1)
 			{
-				int index=highlightSelection;
+				int index=highlightSelection.get(highlightSelection.size()-1);
 				while(!table_1.getItem(index).getText().contains(parameter+":"))
 				{
 					index++;			
@@ -397,7 +420,7 @@ public class Builder {
 			}
 			else
 			{
-				nextStep=highlightSelection+1;
+				nextStep=highlightSelection.get(highlightSelection.size()-1)+1;
 				highlightTableGreen(table_1, nextStep, check);
 			}
 			text_2.setText("Check if "+num2+" is greater or equal to "+num1+", jumping to step "+parameter+" if so");
@@ -409,7 +432,7 @@ public class Builder {
 			stack.get(stack.size()-1).pop();
 			if(num2>num1)
 			{
-				int index=highlightSelection;
+				int index=highlightSelection.get(highlightSelection.size()-1);
 				while(!table_1.getItem(index).getText().contains(parameter+":"))
 				{
 					index++;			
@@ -419,7 +442,7 @@ public class Builder {
 			}
 			else
 			{
-				nextStep=highlightSelection+1;
+				nextStep=highlightSelection.get(highlightSelection.size()-1)+1;
 				highlightTableGreen(table_1, nextStep, check);
 			}
 			text_2.setText("Check if "+num2+" is greater than "+num1+", jumping to step "+parameter+" if so");
@@ -439,7 +462,7 @@ public class Builder {
 			highlightTablePurple(table_3, 1, check);
 			break;
 		case "goto":
-			int index=highlightSelection;
+			int index=highlightSelection.get(highlightSelection.size()-1);
 			System.out.println("count: "+parameter);
 			if(Integer.parseInt(parameter)<index)
 			{
@@ -498,21 +521,21 @@ public class Builder {
 			stack.get(stack.size()-1).pop();
 			break;
 		case "irem":
-			num1=Integer.parseInt(table_3.getItem(1).getText());
-			num2=Integer.parseInt(table_3.getItem(2).getText());
+			num1=Integer.parseInt(stack.get(stack.size()-1).get(1));
+			num2=Integer.parseInt(stack.get(stack.size()-1).get(0));
 			stack.get(stack.size()-1).pop();
-			System.out.println("num1: "+num1+" num2: "+num2);
 			stack.get(stack.size()-1).pop();
 			stack.get(stack.size()-1).push(Integer.toString(num1%num2));
+			highlightTablePurple(table_3, 1, check);
 			text_2.setText("Get the remainder of "+num1+" divided by "+num2);
 			break;
 		case "ifne":
 			num1 = Integer.parseInt(parameter);
 			num2 = Integer.parseInt(stack.get(stack.size()-1).get(0));
 			stack.get(stack.size()-1).pop();
-			if(num2!=num1)
+			if(num2!=0)
 			{
-				index=highlightSelection;
+				index=highlightSelection.get(highlightSelection.size()-1);
 				while(!table_1.getItem(index).getText().contains(parameter+":"))
 				{
 					index++;			
@@ -522,14 +545,10 @@ public class Builder {
 			}
 			else
 			{
-				nextStep=highlightSelection+1;
+				nextStep=highlightSelection.get(highlightSelection.size()-1)+1;
 				highlightTableGreen(table_1, nextStep, check);
 			}
-			for(index=1;index<table_3.getItemCount();index++)
-			{
-				table_3.getItem(index).setText(stack.get(stack.size()-1).get(index-1));
-			}
-			text_2.setText("Check if "+num2+" is not equal to "+num1+", jumping to step "+parameter+" if so");
+			text_2.setText("Check if "+num2+" is not equal to 0, jumping to step "+parameter+" if so");
 			break;
 		case "dup":
 			System.out.println(table_3.getItem(1).getText());
@@ -538,7 +557,41 @@ public class Builder {
 			highlightTablePurple(table_3, 1, check);
 			break;
 		case "invokestatic":
+			String classParameters=parameter.substring(parameter.indexOf("(")+1,parameter.indexOf(")"));
+			System.out.println(classParameters);
 			
+			for(int j=0;j<bytecodeParse.getCodeBytes().size();j++)
+			{
+				if(bytecodeParse.getClassNames().get(bytecodeParse.getCodeBytes().get(j)).contains(parameter.substring(parameter.indexOf(".")+1,parameter.indexOf(":"))))
+				{
+					opcodeString.add(new OpcodeString(bytecodeParse.getCodeBytes().get(j)));
+					stack.add(new StackTable());
+					variables.add(new VariablesTable());
+					int parametersIndex=0;
+					int variablesIndex=0;
+					while(parametersIndex<classParameters.length())
+					{
+						switch(classParameters.charAt(parametersIndex))
+						{
+						case 'I':
+							variables.get(variables.size()-1).put(variablesIndex, Integer.parseInt(stack.get(stack.size()-2).pop()));
+							variablesIndex++;
+							break;
+						}
+						parametersIndex++;
+					}
+					try {
+						fillTable(table_1, opcodeString.get(opcodeString.size()-1).stringify());
+						table_1.setItemCount(table_1.getItemCount()+1);
+					} catch (UnsupportedEncodingException e) {
+						e.printStackTrace();
+					}
+					table_1.getItem(highlightSelection.get(highlightSelection.size()-1)).setBackground(0, new Color(display, 255, 255, 255));
+					highlightSelection.add(1);
+					table_1.getItem(1).setBackground(0, new Color(display, 255, 0, 0));
+					getSelection();
+				}
+			}
 			break;
 		case "invokevirtual":
 			if(parameter.contains("java/io/PrintStream.println:"))
@@ -594,6 +647,71 @@ public class Builder {
 			text_2.setText("Push value "+iArray[arrayIndex]+" at index "+arrayIndex+" onto the stack");
 			highlightTablePurple(table_3, 1, check);
 			break;
+		case "ireturn\n":
+			if(stack.size()>=3)
+			{
+				
+				stack.get(stack.size()-2).push(stack.get(stack.size()-1).pop());
+				System.out.println("stack before: "+stack.size());
+				stack.remove(stack.size()-1);
+				System.out.println("stack after: "+stack.size());
+				variables.remove(variables.size()-1);
+				opcodeString.remove(opcodeString.size()-1);
+				try {
+					
+					fillTable(table_1, opcodeString.get(opcodeString.size()-1).stringify());
+					table_1.getItem(highlightSelection.get(highlightSelection.size()-2)).setBackground(0, new Color(display, 255, 0, 0));
+				} catch (UnsupportedEncodingException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				try
+				{
+					table_1.getItem(highlightSelection.get(highlightSelection.size()-1)).setBackground(0, new Color(display, 255, 255, 255));
+				}
+				catch(IllegalArgumentException e)
+				{
+					e.printStackTrace();
+				}
+				System.out.println("table size: "+table_1.getItemCount());
+				
+				highlightSelection.remove(highlightSelection.size()-1);
+				
+			}
+			break;
+		case "return\n":
+			System.out.println("stack size: "+stack.size());
+			if(stack.size()>=3)
+			{
+				
+				stack.get(stack.size()-2).push(stack.get(stack.size()-1).pop());
+				System.out.println("stack before: "+stack.size());
+				stack.remove(stack.size()-1);
+				System.out.println("stack after: "+stack.size());
+				variables.remove(variables.size()-1);
+				opcodeString.remove(opcodeString.size()-1);
+				try {
+					
+					fillTable(table_1, opcodeString.get(opcodeString.size()-1).stringify());
+					table_1.getItem(highlightSelection.get(highlightSelection.size()-2)).setBackground(0, new Color(display, 255, 0, 0));
+				} catch (UnsupportedEncodingException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				try
+				{
+					table_1.getItem(highlightSelection.get(highlightSelection.size()-1)).setBackground(0, new Color(display, 255, 255, 255));
+				}
+				catch(IllegalArgumentException e)
+				{
+					e.printStackTrace();
+				}
+				System.out.println("table size: "+table_1.getItemCount());
+				
+				highlightSelection.remove(highlightSelection.size()-1);
+				
+			}
+			break;
 		/*default:
 			System.out.println("test");
 			for(int index=1;index<table_2.getItemCount();index++)
@@ -604,11 +722,19 @@ public class Builder {
 			break;*/
 		}
 		fillTable(stack.get(stack.size()-1).getStackItems());
+		
 		table_4.setItemCount(variables.get(variables.size()-1).getLength()+1);
 
 		for(int index=1;index<table_4.getItemCount();index++)
 		{
-			table_4.getItem(index).setText("Variable "+index+": "+variables.get(variables.size()-1).get(index).toString());
+			try
+			{
+				table_4.getItem(index).setText("Variable "+index+": "+variables.get(variables.size()-1).get(index).toString());
+			}
+			catch(NullPointerException e)
+			{
+				
+			}
 		}
 	}
 	
@@ -651,7 +777,8 @@ public class Builder {
 	 * Create contents of the window.
 	 */
 	protected void createContents() {
-		
+		highlightSelection=new ArrayList<Integer>();
+		highlightSelection.add(1);
 		
 		shell = new Shell();
 		shell.setSize(1120, 607);
@@ -789,7 +916,7 @@ public class Builder {
 	            {
 	            	if(item.getText()!="")
 		            {
-		            	TableItem selected=table_1.getItem(highlightSelection);
+		            	TableItem selected=table_1.getItem(highlightSelection.get(highlightSelection.size()-1));
 			            
 						
 						if(canTraverseTo(selected, item))
@@ -806,24 +933,24 @@ public class Builder {
 								{
 									table_4.getItem(index).setBackground(0, new Color(display, 255, 255, 255));
 								}	
-								if(table_1.getItemCount()!=1&&highlightSelection<table_1.getItemCount()-2)
+								if(table_1.getItemCount()!=1&&highlightSelection.get(highlightSelection.size()-1)<table_1.getItemCount()-2)
 								{
 									display = Display.getDefault();
-									table_1.getItem(highlightSelection).setBackground(0, new Color(display, 255, 255, 255));
+									table_1.getItem(highlightSelection.get(highlightSelection.size()-1)).setBackground(0, new Color(display, 255, 255, 255));
 									if(nextStep!=-1)
 									{
-										highlightSelection=nextStep;
+										highlightSelection.set(highlightSelection.size()-1, nextStep);
 									}						
 									else
 									{
-										if(table_1.getItem(highlightSelection+1).getText().equals("")) highlightSelection+=2;
-										else highlightSelection++;
+										if(table_1.getItem(highlightSelection.get(highlightSelection.size()-1)+1).getText().equals("")) highlightSelection.set(highlightSelection.size()-1, highlightSelection.get(highlightSelection.size()-1)+2);
+										else highlightSelection.set(highlightSelection.size()-1, highlightSelection.get(highlightSelection.size()-1)+1);
 									}
 									
-									table_1.getItem(highlightSelection).setBackground(0, new Color(display, 255, 0, 0));
+									table_1.getItem(highlightSelection.get(highlightSelection.size()-1)).setBackground(0, new Color(display, 255, 0, 0));
 									getSelection();
 								}
-								selected=table_1.getItem(highlightSelection);
+								selected=table_1.getItem(highlightSelection.get(highlightSelection.size()-1));
 							}
 						}
 		            }
@@ -835,7 +962,7 @@ public class Builder {
 	            
 		    }
 		});
-		table_1.deselect(highlightSelection);
+		table_1.deselect(highlightSelection.get(highlightSelection.size()-1));
 		TableCursor tableCursor = new TableCursor(table_1, SWT.NONE);
 		formToolkit.adapt(tableCursor);
 		formToolkit.paintBordersFor(tableCursor);
@@ -874,9 +1001,9 @@ public class Builder {
 					{
 						if(bytecodeParse.getClassNames().get(codeBytes.get(index)).contains("main"))
 						{
-							opcodeString=new OpcodeString(codeBytes.get(index));
+							opcodeString.add(new OpcodeString(codeBytes.get(index)));
 							
-							ArrayList<String> tableBytecode = opcodeString.stringify();
+							ArrayList<String> tableBytecode = opcodeString.get(0).stringify();
 							for(int j=0;j<tableBytecode.size();j++)
 							{
 								tableItem=new TableItem(table_1, SWT.NONE);
@@ -902,8 +1029,8 @@ public class Builder {
 						
 					}*/
 					Display display = Display.getDefault();
-					highlightSelection=1;
-					table_1.getItem(highlightSelection).setBackground(0, new Color(display, 255, 0, 0));
+					highlightSelection.set(highlightSelection.size()-1, 1);
+					table_1.getItem(highlightSelection.get(highlightSelection.size()-1)).setBackground(0, new Color(display, 255, 0, 0));
 					//System.out.println("test "+byteToString(BytecodeParse.constantPool[(int)bytecodeParse.getCodeMethods().get(0).getAttributes()[0].getInfo()[0]-1].getBytes()));
 					//byteToString(constantPool[constantPool[thisClass-1].getInfo()[0]-1].getBytes()));
 					getSelection();
@@ -942,21 +1069,21 @@ public class Builder {
 				{
 					table_4.getItem(index).setBackground(0, new Color(display, 255, 255, 255));
 				}
-				if(table_1.getItemCount()!=1&&highlightSelection<table_1.getItemCount()-2)
+				if(table_1.getItemCount()!=1&&highlightSelection.get(highlightSelection.size()-1)<table_1.getItemCount()-2)
 				{
 					
-					table_1.getItem(highlightSelection).setBackground(0, new Color(display, 255, 255, 255));
+					table_1.getItem(highlightSelection.get(highlightSelection.size()-1)).setBackground(0, new Color(display, 255, 255, 255));
 					if(nextStep!=-1)
 					{
-						highlightSelection=nextStep;
+						highlightSelection.set(highlightSelection.size()-1, nextStep);;
 					}						
 					else
 					{
-						if(table_1.getItem(highlightSelection+1).getText().equals("")) highlightSelection+=2;
-						else highlightSelection++;
+						if(table_1.getItem(highlightSelection.get(highlightSelection.size()-1)+1).getText().equals("")) highlightSelection.set(highlightSelection.size()-1, highlightSelection.get(highlightSelection.size()-1)+2);
+						else highlightSelection.set(highlightSelection.size()-1, highlightSelection.get(highlightSelection.size()-1)+1);
 					}
 					
-					table_1.getItem(highlightSelection).setBackground(0, new Color(display, 255, 0, 0));
+					table_1.getItem(highlightSelection.get(highlightSelection.size()-1)).setBackground(0, new Color(display, 255, 0, 0));
 					getSelection();
 				}
 				

@@ -32,12 +32,14 @@ public class StackTable {
 	public void push(String toPush) {
 		getStackItems().add(0, toPush);
 	}
-	public void pop() {
+	public String pop() {
 		ArrayList<String> temp=new ArrayList<String>();
 		for(int index=1;index<getStackItems().size();index++)
 		{
 			temp.add(getStackItems().get(index));
 		}
+		String toReturn=getStackItems().get(0);
 		setStackItems(temp);
+		return toReturn;
 	}
 }
