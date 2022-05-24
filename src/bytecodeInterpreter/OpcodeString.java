@@ -230,7 +230,8 @@ public class OpcodeString {
 				temp.add(index+": aaload");
 				break;
 			case 181:
-				temp.add(index+": putfield\t "+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[BytecodeParse.constantPool[((bytes[index+1] << 8)+bytes[index+2])-1].getInfo()[0]-1].getInfo()[0]-1].getBytes()));
+				bytesNum=(bytes[index+1] << 8)+(bytes[index+2] & 0xff);
+				temp.add(index+": putfield\t "+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[BytecodeParse.constantPool[bytesNum-1].getInfo()[0]-1].getInfo()[0]-1].getBytes()));
 				index+=2;
 				break;
 			case 160:
@@ -238,7 +239,8 @@ public class OpcodeString {
 				index+=2;
 				break;
 			case 180:
-				temp.add(index+": getfield\t "+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[BytecodeParse.constantPool[((bytes[index+1] << 8)+bytes[index+2])-1].getInfo()[0]-1].getInfo()[0]-1].getBytes()));
+				bytesNum=(bytes[index+1] << 8)+(bytes[index+2] & 0xff);
+				temp.add(index+": getfield\t "+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[BytecodeParse.constantPool[bytesNum-1].getInfo()[0]-1].getInfo()[0]-1].getBytes()));
 				index+=2;
 				break;
 			case 176:

@@ -9,6 +9,7 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.swt.widgets.Table;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.widgets.FileDialog;
 
@@ -17,11 +18,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.custom.TableCursor;
@@ -54,6 +53,8 @@ public class Builder {
 	private ArrayList<OpcodeString> opcodeString;
 	private Text text_3;
 	private Text text_4;
+	private String filePath;
+	private int fontSize = 9;
 	private String cmdResponse(String command)
 	{
 		String response="";
@@ -115,17 +116,6 @@ public class Builder {
 		{
 			e1.printStackTrace();
 		}
-	}
-	private String byteToString(byte[] bytes) throws UnsupportedEncodingException
-	{
-		ByteBuffer buffer = ByteBuffer.allocate(bytes.length);
-		for(int index=0;index<bytes.length;index++)
-		buffer.put(bytes[index]);
-		String newContent = null;
-		if (buffer.hasArray()) {
-	        newContent = new String(buffer.array(), "UTF-8");
-	    }
-		return newContent;
 	}
 	private String arrayString(Object[] array)
 	{
@@ -270,13 +260,9 @@ public class Builder {
 			parameter=selection.substring(selection.lastIndexOf("\t")+2);
 			selection=selection.substring(0, selection.indexOf("\t"));
 		}
-		
-		TableItem tableItem;
-		String newContent;
 		TableItem item;
 		Display display = Display.getDefault();
 		Object[] array;
-		HashMap<TableItem, Integer> references = new HashMap<TableItem, Integer>();
 		int num1;
 		int num2;
 		switch(selection) {
@@ -341,7 +327,7 @@ public class Builder {
 		
 		case "istore_1":
 			variables.get(variables.size()-1).put(1, Integer.parseInt(table_3.getItem(1).getText()));
-			highlightTablePurple(table_4, 1, check); //TODO: doesnt work with nothing on stack
+			highlightTablePurple(table_4, 1, check);
 			text_2.setText("Pop the value "+table_3.getItem(1).getText()+" from the stack, storing it in variable 1");
 			stack.get(stack.size()-1).pop();
 			break;
@@ -526,6 +512,28 @@ public class Builder {
 				highlightTableGreen(table_1, nextStep, check);
 			}
 			text_2.setText("Check if "+num2+" is greater or equal to "+num1+", jumping to step "+parameter+" if so");
+			break;
+		case "if_icmpne":
+			num1 = Integer.parseInt(stack.get(stack.size()-1).get(0));
+			stack.get(stack.size()-1).pop();
+			num2 = Integer.parseInt(stack.get(stack.size()-1).get(0));
+			stack.get(stack.size()-1).pop();
+			if(num2!=num1)
+			{
+				int index=highlightSelection.get(highlightSelection.size()-1);
+				while(!table_1.getItem(index).getText().contains(parameter+":"))
+				{
+					index++;			
+				}
+				highlightTableGreen(table_1, index, check);
+				nextStep=index;
+			}
+			else
+			{
+				nextStep=highlightSelection.get(highlightSelection.size()-1)+1;
+				highlightTableGreen(table_1, nextStep, check);
+			}
+			text_2.setText("Check if "+num2+" is not equal to "+num1+", jumping to step "+parameter+" if so");
 			break;
 		case "if_icmpgt":
 			num1 = Integer.parseInt(stack.get(stack.size()-1).get(0));
@@ -741,6 +749,10 @@ public class Builder {
 				text_4.insert(toPrint);
 				text_2.setText("Print "+toPrint+" to the console");
 			}
+			else
+			{
+				
+			}
 			stack.get(stack.size()-1).pop();
 			break;
 		case "pop":
@@ -811,7 +823,6 @@ public class Builder {
 					fillTable(table_1, opcodeString.get(opcodeString.size()-1).stringify());
 					table_1.getItem(highlightSelection.get(highlightSelection.size()-2)).setBackground(0, new Color(display, 255, 0, 0));
 				} catch (UnsupportedEncodingException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				try
@@ -822,10 +833,8 @@ public class Builder {
 				{
 					e.printStackTrace();
 				}
-				System.out.println("table size: "+table_1.getItemCount());
-				
+				System.out.println("table size: "+table_1.getItemCount());				
 				highlightSelection.remove(highlightSelection.size()-1);
-				
 			}
 			break;
 		case "return\n":
@@ -844,7 +853,6 @@ public class Builder {
 					fillTable(table_1, opcodeString.get(opcodeString.size()-1).stringify());
 					table_1.getItem(highlightSelection.get(highlightSelection.size()-2)).setBackground(0, new Color(display, 255, 0, 0));
 				} catch (UnsupportedEncodingException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				try
@@ -906,7 +914,6 @@ public class Builder {
 		try {
 			System.out.println(Object.class.getResource("Object.class").getContent());
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		createContents();
@@ -923,6 +930,7 @@ public class Builder {
 	 * Create contents of the window.
 	 */
 	protected void createContents() {
+		Font font = SWTResourceManager.getFont("Segoe UI", fontSize, SWT.NORMAL);
 		highlightSelection=new ArrayList<Integer>();
 		highlightSelection.add(1);
 		
@@ -952,17 +960,91 @@ public class Builder {
 		Menu menu_2 = new Menu(mntmView);
 		mntmView.setMenu(menu_2);
 		
-		MenuItem mntmCode = new MenuItem(menu_2, SWT.NONE);
-		mntmCode.addSelectionListener(new SelectionAdapter() {
+		MenuItem mntmIncreaseFont = new MenuItem(menu_2, SWT.NONE);
+		mntmIncreaseFont.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				//ViewCode viewCode=new ViewCode(shell, SWT.NONE);
+				fontSize++;
+				text_1.setFont(SWTResourceManager.getFont("Segoe UI", fontSize, SWT.NORMAL));
+				text_2.setFont(SWTResourceManager.getFont("Segoe UI", fontSize, SWT.NORMAL));
+				text_3.setFont(SWTResourceManager.getFont("Segoe UI", fontSize, SWT.NORMAL));
+				text_4.setFont(SWTResourceManager.getFont("Segoe UI", fontSize, SWT.NORMAL));
+				table_1.setFont(SWTResourceManager.getFont("Segoe UI", fontSize, SWT.NORMAL));
+				table_3.setFont(SWTResourceManager.getFont("Segoe UI", fontSize, SWT.NORMAL));
+				table_4.setFont(SWTResourceManager.getFont("Segoe UI", fontSize, SWT.NORMAL));
 			}
 		});
-		mntmCode.setText("Code");
+		mntmIncreaseFont.setText("Increase Font");
 		
-		MenuItem mntmNewItem = new MenuItem(menu, SWT.NONE);
-		mntmNewItem.setText("Run");
+		MenuItem mntmDecreaseFont = new MenuItem(menu_2, SWT.NONE);
+		mntmDecreaseFont.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				fontSize--;
+				text_1.setFont(SWTResourceManager.getFont("Segoe UI", fontSize, SWT.NORMAL));
+				text_2.setFont(SWTResourceManager.getFont("Segoe UI", fontSize, SWT.NORMAL));
+				text_3.setFont(SWTResourceManager.getFont("Segoe UI", fontSize, SWT.NORMAL));
+				text_4.setFont(SWTResourceManager.getFont("Segoe UI", fontSize, SWT.NORMAL));
+				table_1.setFont(SWTResourceManager.getFont("Segoe UI", fontSize, SWT.NORMAL));
+				table_3.setFont(SWTResourceManager.getFont("Segoe UI", fontSize, SWT.NORMAL));
+				table_4.setFont(SWTResourceManager.getFont("Segoe UI", fontSize, SWT.NORMAL));
+			}
+		});
+		mntmDecreaseFont.setText("Decrease Font");
+		
+		MenuItem mntmRun = new MenuItem(menu, SWT.CASCADE);
+		mntmRun.setText("Run");
+		
+		Menu menu_3 = new Menu(mntmRun);
+		mntmRun.setMenu(menu_3);
+		
+		MenuItem mntmCompile = new MenuItem(menu_3, SWT.NONE);
+		mntmCompile.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				try
+		    	{
+					ReadWrite.write(text_3.getText(), filePath.replace(".class", ".java"));
+					javaFile=text_3.getText();
+					text_3.setText(javaFile);
+					while(!ReadWrite.isReady(filePath)) {}
+					cmdResponse("javac "+filePath.replace(".class", ".java"));
+					File file = null;
+			    	  if(bytecodeParse!=null)
+			    	  {
+			    		  bytecodeParse.setOpcodeStringify(null);
+			    	  }
+			    	  try
+			    	  {
+			    		  file = new File(filePath);
+			    		  byte[] bytes = null;
+				    	  try {
+							bytes = Files.readAllBytes(Paths.get(file.toString()));
+						} catch (IOException|NullPointerException e1) {
+							e1.printStackTrace();
+						}
+				    	  bytecodeParse = new BytecodeParse(bytes);
+				    	  try {
+							bytecodeParse.parse();
+						} catch (IOException e1) {
+							e1.printStackTrace();
+						}
+				    	  text_1.setText(bytecodeParse.getOpcodeString());
+			    	  }
+			    	  catch(NullPointerException e1)
+			    	  {
+			    		  e1.printStackTrace();
+			    		  file = null;
+			    	  }
+			    	  
+		    	}
+	    	  catch(NullPointerException e2)
+	    	  {
+	    		  e2.printStackTrace();
+	    	  }
+			}
+		});
+		mntmCompile.setText("Compile Java");
 		
 		text_1 = new Text(shell, SWT.BORDER | SWT.WRAP | SWT.V_SCROLL | SWT.FULL_SELECTION);
 		text_1.setToolTipText("Raw Bytecode");
@@ -978,7 +1060,7 @@ public class Builder {
 		    		  FileDialog fileDialog = new FileDialog(shell, SWT.MULTI);
 			    	  String[] files= {"*.class", "*.java"};
 			    	  fileDialog.setFilterExtensions(files);
-			    	  String filePath = fileDialog.open();
+			    	  filePath = fileDialog.open();
 			    	  if(filePath.endsWith(".java"))
 			    	  {
 			    		  javaFile=ReadWrite.toString(filePath);
@@ -1001,14 +1083,12 @@ public class Builder {
 				    	  try {
 							bytes = Files.readAllBytes(Paths.get(file.toString()));
 						} catch (IOException|NullPointerException e1) {
-							// TODO Auto-generated catch block
 							e1.printStackTrace();
 						}
 				    	  bytecodeParse = new BytecodeParse(bytes);
 				    	  try {
 							bytecodeParse.parse();
 						} catch (IOException e1) {
-							// TODO Auto-generated catch block
 							e1.printStackTrace();
 						}
 				    	  text_1.setText(bytecodeParse.getOpcodeString());
@@ -1042,64 +1122,61 @@ public class Builder {
 		
 		TableViewer tableViewer = new TableViewer(shell, SWT.BORDER);
 		table_1 = tableViewer.getTable();
+		table_1.setFont(font);
 		table_1.setTouchEnabled(true);
 		table_1.setToolTipText("Bytecode");
 		table_1.setBounds(301, 50, 252, 356);
 		formToolkit.paintBordersFor(table_1);
-		table_1.addListener(SWT.EraseItem, new Listener() {
-		    @Override
-		    public void handleEvent(Event event) {
-		    	
-	            event.detail &= ~SWT.HOT;
-		    }
-		});
+		
 		table_1.addListener(SWT.MouseDown, new Listener(){
 			@Override
 		    public void handleEvent(Event event) {
-				event.detail &= ~SWT.SELECTED;
+				
 				Point pt = new Point(event.x, event.y);
 	            TableItem item = table_1.getItem(pt);
 	            try
 	            {
 	            	if(item.getText()!="")
 		            {
-		            	TableItem selected=table_1.getItem(highlightSelection.get(highlightSelection.size()-1));
-			            
-						
-						if(canTraverseTo(selected, item))
-						{
-							Display display = Display.getDefault();
-							item.setBackground(0, new Color(display, 255, 0, 0));
-							while(selected!=item)
+	            		try
+	            		{
+	            			TableItem selected=table_1.getItem(highlightSelection.get(highlightSelection.size()-1));
+							if(canTraverseTo(selected, item))
 							{
-								for(int index=0;index<table_3.getItemCount();index++)
+								Display display = Display.getDefault();
+								item.setBackground(0, new Color(display, 255, 0, 0));
+								while(selected!=item)
 								{
-									table_3.getItem(index).setBackground(0, new Color(display, 255, 255, 255));
-								}
-								for(int index=0;index<table_4.getItemCount();index++)
-								{
-									table_4.getItem(index).setBackground(0, new Color(display, 255, 255, 255));
-								}	
-								if(table_1.getItemCount()!=1&&highlightSelection.get(highlightSelection.size()-1)<table_1.getItemCount()-2)
-								{
-									display = Display.getDefault();
-									table_1.getItem(highlightSelection.get(highlightSelection.size()-1)).setBackground(0, new Color(display, 255, 255, 255));
-									if(nextStep!=-1)
+									for(int index=0;index<table_3.getItemCount();index++)
 									{
-										highlightSelection.set(highlightSelection.size()-1, nextStep);
-									}						
-									else
-									{
-										if(table_1.getItem(highlightSelection.get(highlightSelection.size()-1)+1).getText().equals("")) highlightSelection.set(highlightSelection.size()-1, highlightSelection.get(highlightSelection.size()-1)+2);
-										else highlightSelection.set(highlightSelection.size()-1, highlightSelection.get(highlightSelection.size()-1)+1);
+										table_3.getItem(index).setBackground(0, new Color(display, 255, 255, 255));
 									}
-									
-									table_1.getItem(highlightSelection.get(highlightSelection.size()-1)).setBackground(0, new Color(display, 255, 0, 0));
-									getSelection();
+									for(int index=0;index<table_4.getItemCount();index++)
+									{
+										table_4.getItem(index).setBackground(0, new Color(display, 255, 255, 255));
+									}	
+									if(table_1.getItemCount()!=1&&highlightSelection.get(highlightSelection.size()-1)<table_1.getItemCount()-2)
+									{
+										display = Display.getDefault();
+										table_1.getItem(highlightSelection.get(highlightSelection.size()-1)).setBackground(0, new Color(display, 255, 255, 255));
+										if(nextStep!=-1)
+										{
+											highlightSelection.set(highlightSelection.size()-1, nextStep);
+										}						
+										else
+										{
+											if(table_1.getItem(highlightSelection.get(highlightSelection.size()-1)+1).getText().equals("")) highlightSelection.set(highlightSelection.size()-1, highlightSelection.get(highlightSelection.size()-1)+2);
+											else highlightSelection.set(highlightSelection.size()-1, highlightSelection.get(highlightSelection.size()-1)+1);
+										}
+										
+										table_1.getItem(highlightSelection.get(highlightSelection.size()-1)).setBackground(0, new Color(display, 255, 0, 0));
+										getSelection();
+									}
+									selected=table_1.getItem(highlightSelection.get(highlightSelection.size()-1));
 								}
-								selected=table_1.getItem(highlightSelection.get(highlightSelection.size()-1));
 							}
-						}
+	            		}
+		            	catch(IllegalArgumentException e) {}
 		            }
 	            }
 	            catch(NullPointerException e)
@@ -1109,7 +1186,6 @@ public class Builder {
 	            
 		    }
 		});
-		table_1.deselect(highlightSelection.get(highlightSelection.size()-1));
 		TableCursor tableCursor = new TableCursor(table_1, SWT.NONE);
 		formToolkit.adapt(tableCursor);
 		formToolkit.paintBordersFor(tableCursor);
@@ -1118,7 +1194,7 @@ public class Builder {
 	    item1.setText("Bytecode");
 	    Font boldFont = new Font( item1.getDisplay(), new FontData( "Arial", 12, SWT.BOLD ) );
 	    item1.setFont( boldFont );
-	
+	    
 		table_2 = new Table(shell, SWT.BORDER | SWT.FULL_SELECTION);
 		table_2.setBounds((int)(shell.getSize().x*0.26875), 50, (int)(shell.getSize().x*0.22589), (int)(shell.getSize().y*0.5881));
 		formToolkit.adapt(table_2);
@@ -1240,13 +1316,19 @@ public class Builder {
 		
 		TableViewer tableViewer_1 = new TableViewer(shell, SWT.BORDER | SWT.FULL_SELECTION);
 		table_3 = tableViewer_1.getTable();
+		table_3.setFont(font);
 		table_3.setToolTipText("Stack");
 		table_3.setBounds((int)(shell.getSize().x*0.51), 50, (int)(shell.getSize().x*0.225), (int)(shell.getSize().y*0.4));
 		formToolkit.paintBordersFor(table_3);
-		
+		table_3.addListener(SWT.EraseItem, new Listener() {
+		    @Override
+		    public void handleEvent(Event event) {
+		    	event.detail &= ~SWT.SELECTED;
+		    }
+		});
 		item1 = new TableItem(table_3, SWT.NONE);
 	    item1.setText("Stack");
-	    boldFont = new Font( item1.getDisplay(), new FontData( "Arial", 12, SWT.BOLD ) );
+	    boldFont = new Font( item1.getDisplay(), new FontData( "Arial", fontSize+3, SWT.BOLD ) );
 	    item1.setFont( boldFont );
 		
 		TableCursor tableCursor_1 = new TableCursor(table_3, SWT.NONE);
@@ -1256,6 +1338,7 @@ public class Builder {
 		TableViewer tableViewer_1_1 = new TableViewer(shell, SWT.BORDER | SWT.FULL_SELECTION);
 		table_4 = tableViewer_1_1.getTable();
 		table_4.setToolTipText("Variables");
+		table_4.setFont(font);
 		table_4.setBounds((int)(shell.getSize().x*0.748), 50, (int)(shell.getSize().x*0.225), (int)(shell.getSize().y*0.4));
 		formToolkit.paintBordersFor(table_4);
 		
@@ -1270,6 +1353,7 @@ public class Builder {
 	    
 	    text_2 = new Text(shell, SWT.BORDER | SWT.WRAP);
 	    text_2.setToolTipText("Bytecode Information");
+	    text_2.setFont(font);
 	    text_2.setBounds((int)(shell.getSize().x*0.26875), (int)(shell.getSize().y*0.6804), (int)(shell.getSize().x*0.22589), (int)(shell.getSize().y*0.1812));
 	    formToolkit.adapt(text_2, true, true);
 	    
@@ -1289,12 +1373,15 @@ public class Builder {
 	    formToolkit.adapt(button_4, true, true);
 	    
 	    text_3 = new Text(shell, SWT.BORDER | SWT.READ_ONLY | SWT.H_SCROLL | SWT.V_SCROLL | SWT.CANCEL);
+	    text_3.setFont(font);
+	    text_3.setEditable(true);
 	    text_3.setToolTipText("Java Code");
 	    text_3.setBounds(10, (int)(shell.getSize().y*0.5), (int)(shell.getSize().x*0.2482), (int)(shell.getSize().y*0.3641));
 	    formToolkit.adapt(text_3, true, true);
 	    
 	    text_4 = new Text(shell, SWT.BORDER | SWT.READ_ONLY | SWT.H_SCROLL | SWT.V_SCROLL | SWT.CANCEL);
 	    text_4.setToolTipText("Console Output");
+	    text_4.setFont(font);
 	    text_4.setBounds((int)(shell.getSize().x*0.51), (int)(shell.getSize().y*0.499), (int)(shell.getSize().x*0.463), (int)(shell.getSize().y*0.364));
 	    formToolkit.adapt(text_4, true, true);
 	    shell.addListener (SWT.Resize,  new Listener () {
