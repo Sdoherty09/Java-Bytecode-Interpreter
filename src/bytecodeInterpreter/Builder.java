@@ -84,16 +84,17 @@ public class Builder {
 		{
 			highlightSelection=new ArrayList<Integer>();
 			opcodeString=new ArrayList<OpcodeString>();
+			stack=new ArrayList<StackTable>();
 			for(int index=1;index<table_1.getItemCount();index++)
 			{
 				table_1.getItem(index).setText("");
 			}
 			Display display = Display.getDefault();
-			if(stack==null)
+			for(int index=0;index<table_1.getItemCount();index++)
 			{
-				table_1.getItem(highlightSelection.get(highlightSelection.size()-1)).setBackground(0, new Color(display, 255, 255, 255));
+				table_1.getItem(index).setBackground(0, new Color(display, 255, 255, 255));
 			}
-			
+			table_1.setItemCount(1);
 			highlightSelection.add(1);
 			for(int index=1;index<table_3.getItemCount();index++)
 			{
@@ -243,9 +244,24 @@ public class Builder {
 			table.getItem(index).setBackground(0, new Color(display, 0, 255, 0));
 		}
 	}
+	private TableItem getVariableTable(int num)
+	{
+		for(int index=0;index<table_4.getItemCount();index++)
+		{
+			if(table_4.getItem(index).getText().startsWith("Variable "+index+":"))
+			{
+				return table_4.getItem(index);
+			}
+		}
+		return null;
+	}
 	private void getSelection() {
 		String selection = table_1.getItem(highlightSelection.get(highlightSelection.size()-1)).getText();
-		selection = selection.substring(selection.indexOf(':')+2);
+		try
+		{
+			selection = selection.substring(selection.indexOf(':')+2);
+		}
+		catch(StringIndexOutOfBoundsException e) {}
 		String parameter = "";
 		boolean check=true;
 		nextStep=-1;
@@ -263,7 +279,6 @@ public class Builder {
 		HashMap<TableItem, Integer> references = new HashMap<TableItem, Integer>();
 		int num1;
 		int num2;
-		
 		switch(selection) {
 		case "aload_0":
 			stack.get(stack.size()-1).push((String)variables.get(variables.size()-1).get(0));
@@ -285,6 +300,11 @@ public class Builder {
 			stack.get(stack.size()-1).push("0");
 			highlightTablePurple(table_3, 1, check);
 			text_2.setText("Push the value 0 onto the stack");
+			break;
+		case "iconst_m1":
+			stack.get(stack.size()-1).push("-1");
+			highlightTablePurple(table_3, 1, check);
+			text_2.setText("Push the value -1 onto the stack");
 			break;
 		case "arraylength":
 			array=toObjectArray(stack.get(stack.size()-1).get(0));
@@ -336,6 +356,88 @@ public class Builder {
 			text_2.setText("Pop the value "+table_3.getItem(1).getText()+" from the stack, storing it in variable 3");
 			highlightTablePurple(table_4, 1, check);
 			stack.get(stack.size()-1).pop();
+			break;
+		case "lstore_0":
+			variables.get(variables.size()-1).getVariableItems().put(0, Long.parseLong(table_3.getItem(1).getText()));
+			text_2.setText("Pop the value "+table_3.getItem(1).getText()+" from the stack, storing it in variable 0");
+			highlightTablePurple(table_4, 1, check);
+			stack.get(stack.size()-1).pop();
+			break;
+		case "lstore_1":
+			variables.get(variables.size()-1).getVariableItems().put(1, Long.parseLong(table_3.getItem(1).getText()));
+			text_2.setText("Pop the value "+table_3.getItem(1).getText()+" from the stack, storing it in variable 1");
+			highlightTablePurple(table_4, 1, check);
+			stack.get(stack.size()-1).pop();
+			break;
+		case "lstore_2":
+			variables.get(variables.size()-1).getVariableItems().put(2, Long.parseLong(table_3.getItem(1).getText()));
+			text_2.setText("Pop the value "+table_3.getItem(1).getText()+" from the stack, storing it in variable 2");
+			highlightTablePurple(table_4, 1, check);
+			stack.get(stack.size()-1).pop();
+			break;
+		case "lstore_3":
+			variables.get(variables.size()-1).getVariableItems().put(3, Long.parseLong(table_3.getItem(1).getText()));
+			text_2.setText("Pop the value "+table_3.getItem(1).getText()+" from the stack, storing it in variable 3");
+			highlightTablePurple(table_4, 1, check);
+			stack.get(stack.size()-1).pop();
+			break;
+		case "iadd":
+			num1=Integer.parseInt(stack.get(stack.size()-1).pop());
+			num2=Integer.parseInt(stack.get(stack.size()-1).pop());
+			stack.get(stack.size()-1).push(Integer.toString(num1+num2));
+			text_2.setText("Add the values "+num1+" and "+num2+", pushing the value to the stack");
+			break;
+		case "isub":
+			num1=Integer.parseInt(stack.get(stack.size()-1).pop());
+			num2=Integer.parseInt(stack.get(stack.size()-1).pop());
+			stack.get(stack.size()-1).push(Integer.toString(num1-num2));
+			text_2.setText("Subtract "+num2+" from "+num1+", pushing the value to the stack");
+			break;
+		case "idiv":
+			num1=Integer.parseInt(stack.get(stack.size()-1).pop());
+			num2=Integer.parseInt(stack.get(stack.size()-1).pop());
+			stack.get(stack.size()-1).push(Integer.toString(num1/num2));
+			text_2.setText("Divide "+num2+" by "+num2+", pushing the value to the stack");
+			break;
+		case "imul":
+			num1=Integer.parseInt(stack.get(stack.size()-1).pop());
+			num2=Integer.parseInt(stack.get(stack.size()-1).pop());
+			stack.get(stack.size()-1).push(Integer.toString(num1*num2));
+			text_2.setText("Multiply the values "+num1+" and "+num2+", pushing the value to the stack");
+			break;
+		case "new":
+			for(int index=0;index<variables.get(variables.size()-1).getLength();index++)
+			{
+				try
+				{
+					if(((String)variables.get(variables.size()-1).get(index)).startsWith("{"+parameter+"}"))
+					{
+						stack.get(stack.size()-1).push(((String)variables.get(variables.size()-1).get(index)));
+						highlightTablePurple(table_3.getItem(1), check);
+					}
+				}
+				catch(NullPointerException e) {}
+			}
+			break;
+		case "aastore":
+			String arrayValueString=stack.get(stack.size()-1).get(0);
+			int arrayIndex=Integer.parseInt(stack.get(stack.size()-1).get(1));
+			Object[] oArray=toObjectArray(stack.get(stack.size()-1).get(2));			
+			int variableNum=0;
+			for(int index=1;index<variables.get(variables.size()-1).getLength();index++)
+			{	
+				if(((String)variables.get(variables.size()-1).get(index)).substring((variables.get(variables.size()-1).get(index).toString()).indexOf(":")+1).equals(arrayString(oArray)))
+				{
+					variableNum=index;
+				}
+			}
+			stack.get(stack.size()-1).pop();
+			stack.get(stack.size()-1).pop();
+			stack.get(stack.size()-1).pop();
+			oArray[arrayIndex]=arrayValueString;
+			variables.get(variables.size()-1).replace(variableNum, arrayString(oArray));
+			text_2.setText("Store value "+arrayValueString+" into index "+arrayIndex);
+			
 			break;
 		case "newarray":
 			array = new Object[Integer.parseInt(table_3.getItem(1).getText())];
@@ -461,6 +563,11 @@ public class Builder {
 			stack.get(stack.size()-1).push(parameter.substring(parameter.indexOf(" ")+1));
 			highlightTablePurple(table_3, 1, check);
 			break;
+		case "ldc2_w":
+			stack.get(stack.size()-1).push(parameter);
+			highlightTablePurple(table_3, 1, check);
+			text_2.setText("Push a double or long value onto the stack");
+			break;
 		case "goto":
 			int index=highlightSelection.get(highlightSelection.size()-1);
 			System.out.println("count: "+parameter);
@@ -497,6 +604,13 @@ public class Builder {
 			variables.get(variables.size()-1).getVariableItems().put(1, table_3.getItem(1).getText());
 			text_2.setText("Pop the value "+table_3.getItem(1).getText()+" from the stack, storing it in variable 1");
 			stack.get(stack.size()-1).pop();
+			break;
+		case "anewarray":
+			array = new Object[Integer.parseInt(table_3.getItem(1).getText())];
+			stack.get(stack.size()-1).pop();
+			stack.get(stack.size()-1).push("{"+parameter+"} "+arrayString(array));
+			text_2.setText("Create a new array of type "+parameter);
+			highlightTablePurple(table_3, 1, check);
 			break;
 		case "astore_2":
 			if(!variables.get(variables.size()-1).getVariableItems().containsKey(2))
@@ -549,6 +663,27 @@ public class Builder {
 				highlightTableGreen(table_1, nextStep, check);
 			}
 			text_2.setText("Check if "+num2+" is not equal to 0, jumping to step "+parameter+" if so");
+			break;
+		case "ifeq":
+			num1 = Integer.parseInt(parameter);
+			num2 = Integer.parseInt(stack.get(stack.size()-1).get(0));
+			stack.get(stack.size()-1).pop();
+			if(num2==0)
+			{
+				index=highlightSelection.get(highlightSelection.size()-1);
+				while(!table_1.getItem(index).getText().contains(parameter+":"))
+				{
+					index++;			
+				}
+				highlightTableGreen(table_1, index, check);
+				nextStep=index;
+			}
+			else
+			{
+				nextStep=highlightSelection.get(highlightSelection.size()-1)+1;
+				highlightTableGreen(table_1, nextStep, check);
+			}
+			text_2.setText("Check if "+num2+" is equal to 0, jumping to step "+parameter+" if so");
 			break;
 		case "dup":
 			System.out.println(table_3.getItem(1).getText());
@@ -612,11 +747,25 @@ public class Builder {
 			stack.get(stack.size()-1).pop();
 			text_2.setText("Pop the top value from the stack");
 			break;
+		case "pop2":
+			stack.get(stack.size()-1).pop();
+			stack.get(stack.size()-1).pop();
+			text_2.setText("Pop the top two values from the stack");
+			break;
+		case "swap":
+			String firstEntry=stack.get(stack.size()-1).pop();
+			String secondEntry=stack.get(stack.size()-1).pop();
+			stack.get(stack.size()-1).push(firstEntry);
+			stack.get(stack.size()-1).push(secondEntry);
+			text_2.setText("Swap the top two values on the stack");
+			highlightTablePurple(table_3, 1, check);
+			highlightTablePurple(table_3, 2, check);
+			break;
 		case "iastore":
 			int arrayValue=Integer.parseInt(stack.get(stack.size()-1).get(0));
-			int arrayIndex=Integer.parseInt(stack.get(stack.size()-1).get(1));
+			arrayIndex=Integer.parseInt(stack.get(stack.size()-1).get(1));
 			Integer[] iArray=toIntArray(stack.get(stack.size()-1).get(2));			
-			int variableNum=0;
+			variableNum=0;
 			for(index=1;index<variables.get(variables.size()-1).getLength();index++)
 			{
 				
@@ -648,7 +797,7 @@ public class Builder {
 			highlightTablePurple(table_3, 1, check);
 			break;
 		case "ireturn\n":
-			if(stack.size()>=3)
+			if(stack.size()>1)
 			{
 				
 				stack.get(stack.size()-2).push(stack.get(stack.size()-1).pop());
@@ -681,7 +830,7 @@ public class Builder {
 			break;
 		case "return\n":
 			System.out.println("stack size: "+stack.size());
-			if(stack.size()>=3)
+			if(stack.size()>1)
 			{
 				
 				stack.get(stack.size()-2).push(stack.get(stack.size()-1).pop());
@@ -731,10 +880,7 @@ public class Builder {
 			{
 				table_4.getItem(index).setText("Variable "+index+": "+variables.get(variables.size()-1).get(index).toString());
 			}
-			catch(NullPointerException e)
-			{
-				
-			}
+			catch(NullPointerException e) {}
 		}
 	}
 	
@@ -818,7 +964,7 @@ public class Builder {
 		MenuItem mntmNewItem = new MenuItem(menu, SWT.NONE);
 		mntmNewItem.setText("Run");
 		
-		text_1 = new Text(shell, SWT.BORDER | SWT.WRAP | SWT.V_SCROLL);
+		text_1 = new Text(shell, SWT.BORDER | SWT.WRAP | SWT.V_SCROLL | SWT.FULL_SELECTION);
 		text_1.setToolTipText("Raw Bytecode");
 		text_1.setBounds(10, 50, (int)(shell.getSize().x*0.2491), (int)(shell.getSize().y*0.4));
 		text_1.setEditable(false);
@@ -836,6 +982,7 @@ public class Builder {
 			    	  if(filePath.endsWith(".java"))
 			    	  {
 			    		  javaFile=ReadWrite.toString(filePath);
+			    		  cmdResponse("javac "+filePath);
 			    		  filePath=filePath.replace(".java", ".class");
 			    	  }
 			    	  else
@@ -893,7 +1040,7 @@ public class Builder {
 		//formToolkit.paintBordersFor(form);
 		//form.setText("New Form");
 		
-		TableViewer tableViewer = new TableViewer(shell, SWT.BORDER | SWT.FULL_SELECTION);
+		TableViewer tableViewer = new TableViewer(shell, SWT.BORDER);
 		table_1 = tableViewer.getTable();
 		table_1.setTouchEnabled(true);
 		table_1.setToolTipText("Bytecode");
@@ -902,13 +1049,13 @@ public class Builder {
 		table_1.addListener(SWT.EraseItem, new Listener() {
 		    @Override
 		    public void handleEvent(Event event) {
-				event.detail &= ~SWT.SELECTED;
+		    	
+	            event.detail &= ~SWT.HOT;
 		    }
 		});
 		table_1.addListener(SWT.MouseDown, new Listener(){
 			@Override
 		    public void handleEvent(Event event) {
-				event.detail &= ~SWT.FOCUSED;
 				event.detail &= ~SWT.SELECTED;
 				Point pt = new Point(event.x, event.y);
 	            TableItem item = table_1.getItem(pt);
@@ -1041,7 +1188,7 @@ public class Builder {
 				}	
 			}
 		});
-		btnNewButton.setImage(SWTResourceManager.getImage(new File("images/play.png").getAbsolutePath()));
+		btnNewButton.setImage(SWTResourceManager.getImage(Builder.class, "/src/swtbuilder/images/play.png"));
 		formToolkit.adapt(btnNewButton, true, true);
 		
 		Button button = formToolkit.createButton(shell, "", SWT.NONE);
@@ -1056,7 +1203,7 @@ public class Builder {
 		
 		Button button_1 = new Button(shell, SWT.NONE);
 		button_1.setBounds(90, 10, 34, 34);
-		button_1.setImage(SWTResourceManager.getImage(new File("src/swtbuilder/images/next.png").getAbsolutePath()));
+		button_1.setImage(SWTResourceManager.getImage(Builder.class, "/src/swtbuilder/images/next.png"));
 		button_1.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {

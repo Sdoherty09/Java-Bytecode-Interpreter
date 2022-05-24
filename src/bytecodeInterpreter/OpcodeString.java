@@ -120,14 +120,25 @@ public class OpcodeString {
 				temp.add(index+": iload_3");
 				break;
 			case 20: //TODO: finish
-				BigInteger bigInt = new BigInteger((ByteBuffer.allocate(4).putInt(BytecodeParse.constantPool[(bytes[index+1] << 8) +bytes[index+2]].getInfo()[0])).array());
-				long bits = bigInt.shiftLeft(32).longValue()+(BytecodeParse.constantPool[(bytes[index+1] << 8) +bytes[index+2]].getInfo()[1]);
-				int s = ((bits >> 63) == 0) ? 1 : -1;
-				int e = (int)((bits >> 52) & 0x7ffL);
-				long m = (e == 0) ?
-				           (bits & 0xfffffffffffffL) << 1 :
-				           (bits & 0xfffffffffffffL) | 0x10000000000000L;
-				temp.add(index+": ldc2_w\t " + (double)(s*m*2^(e-1075)));
+				bytesNum=(bytes[index+1] << 8)+(bytes[index+2] & 0xff);	
+				System.out.println("tag: "+BytecodeParse.constantPool[bytesNum].getTag());
+				if(BytecodeParse.constantPool[bytesNum].getTag()==5)
+				{
+					long bits = (((long)BytecodeParse.constantPool[bytesNum].getInfo()[0]) << 32)+(BytecodeParse.constantPool[bytesNum].getInfo()[1]); //CORRECT
+					temp.add(index+": ldc2_w\t " + bits);
+				}
+				else
+				{
+					long bits = (((long)BytecodeParse.constantPool[bytesNum].getInfo()[0]) << 32)+(BytecodeParse.constantPool[bytesNum].getInfo()[1]); //CORRECT PROB
+					int s = ((bits >> 63) == 0) ? 1 : -1;
+					int e = (int)((bits >> 52) & 0x7ffL);
+					long m = (e == 0) ?
+					           (bits & 0xfffffffffffffL) << 1 :
+					           (bits & 0xfffffffffffffL) | 0x10000000000000L;
+					double result = (s*m*2^(e-1075));
+					temp.add(index+": ldc2_w\t " + result);
+				}
+				
 				index+=2;
 				break;
 			case 135:
@@ -318,6 +329,34 @@ public class OpcodeString {
 			case 121:
 				temp.add(index+": lshl");
 				break;
+			case 100:
+				temp.add(index+": isub");
+				break;
+			case 88:
+				temp.add(index+": pop2");
+				break;
+			case 95:
+				temp.add(index+": swap");
+				break;
+			case 108:
+				temp.add(index+": idiv");
+				break;
+			case 104:
+				temp.add(index+": imul");
+				break;
+			case 63:
+				temp.add(index+": lstore_0");
+				break;
+			case 64:
+				temp.add(index+": lstore_1");
+				break;
+			case 65:
+				temp.add(index+": lstore_2");
+				break;
+			case 66:
+				temp.add(index+": lstore_3");
+				break;
+				
 			default:
 				temp.add(""+(bytes[index] & 0xff));
 				break;

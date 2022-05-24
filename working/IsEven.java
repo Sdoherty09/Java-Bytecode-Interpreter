@@ -7,8 +7,15 @@ public class IsEven {
 	
 	public static void main(String[] args)
 	{	
-		int num=7;
-		isEven(num);
+		int num=6;
+		if(isEven(num))
+		{
+			System.out.println("Even");
+		}
+		else
+		{
+			System.out.println("Odd");
+		}
 	}
 }
 

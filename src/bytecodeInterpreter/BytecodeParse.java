@@ -125,9 +125,9 @@ public class BytecodeParse {
 				break;
 			case 5: case 6:
 				info=new int[2];
-				index++;
 				info[0]=inputStream.readInt();
 				info[1]=inputStream.readInt();
+				index++;
 				break;
 			case 1:
 				int length=inputStream.readUnsignedShort();
