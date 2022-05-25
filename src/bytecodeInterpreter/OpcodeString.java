@@ -33,7 +33,6 @@ public class OpcodeString {
 	{
 		ArrayList<String> temp = new ArrayList<String>();
 		if(className!=null) temp.add(className+":");		
-		System.out.println(className);
 		int bytesNum;
 		for(int index=0;index<bytes.length;index++)
 		{
@@ -43,8 +42,6 @@ public class OpcodeString {
 				temp.add(index+ ": aload_0");
 				break;
 			case 183:
-				System.out.println("bytes1: "+(bytes[index+2]));
-				System.out.println("bytes: "+((bytes[index+1] << 8)+bytes[index+2] & 0xff));
 				bytesNum=(bytes[index+1] << 8)+(bytes[index+2] & 0xff);
 				temp.add(index+": invokespecial\t "+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[BytecodeParse.constantPool[bytesNum-1].getInfo()[0]-1].getInfo()[0]-1].getBytes())+"."+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[BytecodeParse.constantPool[bytesNum-1].getInfo()[1]-1].getInfo()[0]-1].getBytes())+":"+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[BytecodeParse.constantPool[bytesNum-1].getInfo()[1]-1].getInfo()[1]-1].getBytes()));
 				index+=2;
@@ -58,7 +55,6 @@ public class OpcodeString {
 				index+=2;
 				break;
 			case 18:
-				System.out.println(bytes[index+1]);
 				if(BytecodeParse.constantPool[(bytes[index+1] & 0xff)-1].getTag()==8)
 				{
 					temp.add(index+ ": ldc\t String "+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[(bytes[index+1] & 0xff)-1].getInfo()[0]-1].getBytes()));
@@ -69,7 +65,6 @@ public class OpcodeString {
 				}
 				else
 				{
-					System.out.println("tag: "+BytecodeParse.constantPool[(bytes[index+1] & 0xff)-1].getTag());
 					temp.add(index+ ": ldc\t int "+BytecodeParse.constantPool[(bytes[index+1] & 0xff)-1].getInfo()[0]);
 				}
 				index++;
@@ -80,10 +75,7 @@ public class OpcodeString {
 				index+=2;
 				break;
 			case 184:
-				System.out.println("bytes: "+((bytes[index+1] << 8)+(bytes[index+2] & 0xff)));
 				bytesNum=(bytes[index+1] << 8)+(bytes[index+2] & 0xff);
-				System.out.println(bytesNum);
-				
 				temp.add(index+": invokestatic\t "+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[BytecodeParse.constantPool[bytesNum-1].getInfo()[0]-1].getInfo()[0]-1].getBytes())+"."+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[BytecodeParse.constantPool[bytesNum-1].getInfo()[1]-1].getInfo()[0]-1].getBytes())+":"+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[BytecodeParse.constantPool[bytesNum-1].getInfo()[1]-1].getInfo()[1]-1].getBytes()));
 				index+=2;
 				break;
@@ -96,6 +88,9 @@ public class OpcodeString {
 			case 77:
 				temp.add(index+": astore_2");
 				break;
+			case 59:
+				temp.add(index+": istore_0");
+				break;			
 			case 60:
 				temp.add(index+": istore_1");
 				break;
@@ -121,7 +116,6 @@ public class OpcodeString {
 				break;
 			case 20: //TODO: finish
 				bytesNum=(bytes[index+1] << 8)+(bytes[index+2] & 0xff);	
-				System.out.println("tag: "+BytecodeParse.constantPool[bytesNum].getTag());
 				if(BytecodeParse.constantPool[bytesNum].getTag()==5)
 				{
 					long bits = (((long)BytecodeParse.constantPool[bytesNum].getInfo()[0]) << 32)+(BytecodeParse.constantPool[bytesNum].getInfo()[1]); //CORRECT
@@ -135,8 +129,8 @@ public class OpcodeString {
 					long m = (e == 0) ?
 					           (bits & 0xfffffffffffffL) << 1 :
 					           (bits & 0xfffffffffffffL) | 0x10000000000000L;
-					double result = (s*m*2^(e-1075));
-					temp.add(index+": ldc2_w\t " + result);
+					double result = s*m*(2^(e-1075));
+					temp.add(index+": ldc2_w\t " + (result));
 				}
 				
 				index+=2;
@@ -148,12 +142,24 @@ public class OpcodeString {
 				temp.add(index+": bipush\t "+bytes[index+1]);
 				index++;
 				break;
+			case 159:
+				temp.add(index+": if_icmpeq\t "+(index+(short)((bytes[index+1]& 0xff << 8)+bytes[index+2]& 0xff)));
+				index+=2;
+				break;
+			case 161:
+				temp.add(index+": if_icmplt\t "+(index+(short)((bytes[index+1]& 0xff << 8)+bytes[index+2]& 0xff)));
+				index+=2;
+				break;
 			case 162:
 				temp.add(index+": if_icmpge\t "+(index+(short)((bytes[index+1]& 0xff << 8)+bytes[index+2]& 0xff)));
 				index+=2;
 				break;
 			case 163:
 				temp.add(index+": if_icmpgt\t "+(index+(short)((bytes[index+1]& 0xff << 8)+bytes[index+2]& 0xff)));
+				index+=2;
+				break;
+			case 164:
+				temp.add(index+": if_icmple\t "+(index+(short)((bytes[index+1]& 0xff << 8)+bytes[index+2]& 0xff)));
 				index+=2;
 				break;
 			case 132:
@@ -254,7 +260,6 @@ public class OpcodeString {
 				break;
 			case 186:
 				bytesNum=(bytes[index+1] << 8)+(bytes[index+2] & 0xff);
-				System.out.println("bytes: "+bytesNum);
 				temp.add(index+": invokedynamic\t "+byteToString(BytecodeParse.constantPool[BytecodeParse.constantPool[BytecodeParse.constantPool[bytesNum-1].getInfo()[1]-1].getInfo()[0]-1].getBytes()));
 				index+=4;
 				break;
@@ -267,9 +272,7 @@ public class OpcodeString {
 				}
 				int defaultBytes=((bytes[offset] << 24) | (bytes[offset+1] << 16) | (bytes[offset+2] << 8) | (bytes[offset+3] << 0));
 				offset+=4;
-				System.out.println("DEFAULT BYTES: "+defaultBytes);
 				int npairs=((bytes[offset] << 24) | (bytes[offset+1] << 16) | (bytes[offset+2] << 8) | (bytes[offset+3] << 0));
-				System.out.println("NPAIRS: "+npairs);
 				for(int j=0;j<npairs;j++)
 				{
 					index+=8;
@@ -328,9 +331,6 @@ public class OpcodeString {
 			case 79:
 				temp.add(index+": iastore");
 				break;
-			case 121:
-				temp.add(index+": lshl");
-				break;
 			case 100:
 				temp.add(index+": isub");
 				break;
@@ -358,14 +358,128 @@ public class OpcodeString {
 			case 66:
 				temp.add(index+": lstore_3");
 				break;
-				
+			case 145:
+				temp.add(index+": i2b");
+				break;
+			case 146:
+				temp.add(index+": i2c");
+				break;
+			case 134:
+				temp.add(index+": i2f");
+				break;
+			case 133:
+				temp.add(index+": i2l");
+				break;
+			case 147:
+				temp.add(index+": i2s");
+				break;
+			case 126:
+				temp.add(index+": iand");
+				break;
+			case 116:
+				temp.add(index+": ineg");
+				break;
+			case 128:
+				temp.add(index+": ior");
+				break;
+			case 120:
+				temp.add(index+": ishl");
+				break;
+			case 122:
+				temp.add(index+": ishr");
+				break;
+			case 136:
+				temp.add(index+": l2i");
+				break;
+			case 137:
+				temp.add(index+": l2f");
+				break;
+			case 97:
+				temp.add(index+": ladd");
+				break;
+			case 127:
+				temp.add(index+": land");
+				break;
+			case 117:
+				temp.add(index+": lneg");
+				break;
+			case 129:
+				temp.add(index+": lor");
+				break;
+			case 113:
+				temp.add(index+": lrem");
+				break;
+			case 121:
+				temp.add(index+": lshl");
+				break;
+			case 123:
+				temp.add(index+": lshr");
+				break;
+			case 55:
+				temp.add(index+": lstore");
+				break;
+			case 101:
+				temp.add(index+": lsub");
+				break; //start
+			case 138:
+				temp.add(index+": l2d");
+				break;
+			case 109:
+				temp.add(index+": ldiv");
+				break;
+			case 105: //94
+				temp.add(index+": lmul");
+				break;
+			case 0:
+				temp.add(index+": nop");
+				break;
+			case 53:
+				temp.add(index+": saload");
+				break;
+			case 86:
+				temp.add(index+": sastore");
+				break;
+			case 17:
+				temp.add(index+": sipush\t "+bytes[index+1]);
+				index++;
+				break;
+			case 1:
+				temp.add(index+": aconst_null");
+				break;
+			case 51:
+				temp.add(index+": baload");
+				break;
+			case 84:
+				temp.add(index+": bastore");
+				break;
+			case 52:
+				temp.add(index+": caload");
+				break;
+			case 85:
+				temp.add(index+": castore");
+				break;
+			case 90:
+				temp.add(index+": dup_x1");
+				break;
+			case 91:
+				temp.add(index+": dup_x2");
+				break;
+			case 92:
+				temp.add(index+": dup2");
+				break;
+			case 199:
+				temp.add(index+": ifnonnull\t "+(index+(short)((bytes[index+1]& 0xff << 8)+(bytes[index+2] & 0xff))));
+				index+=2;
+				break;
+			case 198: //108
+				temp.add(index+": ifnull\t "+(index+(short)((bytes[index+1]& 0xff << 8)+(bytes[index+2] & 0xff))));
+				index+=2;
+				break;
 			default:
 				temp.add(""+(bytes[index] & 0xff));
 				break;
 			}
-			System.out.println(temp.get(temp.size()-1));
 		}
-		System.out.println("\n");
 		return temp;
 	}
 	

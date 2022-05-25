@@ -7,7 +7,7 @@ public class IsEven {
 	
 	public static void main(String[] args)
 	{	
-		int num=6;
+		int num=17;
 		if(isEven(num))
 		{
 			System.out.println("Even");

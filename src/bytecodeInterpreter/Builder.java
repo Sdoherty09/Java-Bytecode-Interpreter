@@ -85,6 +85,7 @@ public class Builder {
 		{
 			highlightSelection=new ArrayList<Integer>();
 			opcodeString=new ArrayList<OpcodeString>();
+			variables=new ArrayList<VariablesTable>();
 			stack=new ArrayList<StackTable>();
 			for(int index=1;index<table_1.getItemCount();index++)
 			{
@@ -144,6 +145,39 @@ public class Builder {
 		for(int index=0;index<returnArray.length;index++)
 		{
 			if(objectArray[index]!=null) returnArray[index]=(int)objectArray[index];
+			else returnArray[index] = null;
+		}
+		return returnArray;
+	}
+	private Short[] toShortArray(String stringArray)
+	{
+		Object[] objectArray=toObjectArray(stringArray);
+		Short[] returnArray=new Short[objectArray.length];
+		for(int index=0;index<returnArray.length;index++)
+		{
+			if(objectArray[index]!=null) returnArray[index]=(short)objectArray[index];
+			else returnArray[index] = null;
+		}
+		return returnArray;
+	}
+	private Byte[] toByteArray(String stringArray)
+	{
+		Object[] objectArray=toObjectArray(stringArray);
+		Byte[] returnArray=new Byte[objectArray.length];
+		for(int index=0;index<returnArray.length;index++)
+		{
+			if(objectArray[index]!=null) returnArray[index]=(byte)objectArray[index];
+			else returnArray[index] = null;
+		}
+		return returnArray;
+	}
+	private Character[] toCharArray(String stringArray)
+	{
+		Object[] objectArray=toObjectArray(stringArray);
+		Character[] returnArray=new Character[objectArray.length];
+		for(int index=0;index<returnArray.length;index++)
+		{
+			if(objectArray[index]!=null) returnArray[index]=(char)objectArray[index];
 			else returnArray[index] = null;
 		}
 		return returnArray;
@@ -266,6 +300,12 @@ public class Builder {
 		int num1;
 		int num2;
 		switch(selection) {
+		case "aconst_null":
+			stack.get(stack.size()-1).push("null");
+			highlightTablePurple(table_3, 1, check);
+			text_2.setText("Push null onto the stack");
+			break;
+		
 		case "aload_0":
 			stack.get(stack.size()-1).push((String)variables.get(variables.size()-1).get(0));
 			highlightTablePurple(table_3, 1, check);
@@ -324,7 +364,18 @@ public class Builder {
 			highlightTablePurple(table_3, 1, check);
 			text_2.setText("Push the value 5 onto the stack");
 			break;
-		
+		case "istore":
+			variables.get(variables.size()-1).put(Integer.parseInt(parameter), Integer.parseInt(table_3.getItem(1).getText()));
+			highlightTablePurple(table_4, 1, check);
+			text_2.setText("Pop the value "+table_3.getItem(1).getText()+" from the stack, storing it in variable "+parameter);
+			stack.get(stack.size()-1).pop();
+			break;
+		case "istore_0":
+			variables.get(variables.size()-1).put(0, Integer.parseInt(table_3.getItem(1).getText()));
+			highlightTablePurple(table_4, 1, check);
+			text_2.setText("Pop the value "+table_3.getItem(1).getText()+" from the stack, storing it in variable 0");
+			stack.get(stack.size()-1).pop();
+			break;
 		case "istore_1":
 			variables.get(variables.size()-1).put(1, Integer.parseInt(table_3.getItem(1).getText()));
 			highlightTablePurple(table_4, 1, check);
@@ -341,6 +392,12 @@ public class Builder {
 			variables.get(variables.size()-1).getVariableItems().put(3, Integer.parseInt(table_3.getItem(1).getText()));
 			text_2.setText("Pop the value "+table_3.getItem(1).getText()+" from the stack, storing it in variable 3");
 			highlightTablePurple(table_4, 1, check);
+			stack.get(stack.size()-1).pop();
+			break;
+		case "lstore":
+			variables.get(variables.size()-1).put(Integer.parseInt(parameter), Long.parseLong(table_3.getItem(1).getText()));
+			highlightTablePurple(table_4, 1, check);
+			text_2.setText("Pop the long value "+table_3.getItem(1).getText()+" from the stack, storing it in variable "+parameter);
 			stack.get(stack.size()-1).pop();
 			break;
 		case "lstore_0":
@@ -376,20 +433,143 @@ public class Builder {
 		case "isub":
 			num1=Integer.parseInt(stack.get(stack.size()-1).pop());
 			num2=Integer.parseInt(stack.get(stack.size()-1).pop());
-			stack.get(stack.size()-1).push(Integer.toString(num1-num2));
-			text_2.setText("Subtract "+num2+" from "+num1+", pushing the value to the stack");
+			stack.get(stack.size()-1).push(Integer.toString(num2-num1));
+			text_2.setText("Subtract "+num1+" from "+num2+", pushing the value to the stack");
 			break;
 		case "idiv":
 			num1=Integer.parseInt(stack.get(stack.size()-1).pop());
 			num2=Integer.parseInt(stack.get(stack.size()-1).pop());
-			stack.get(stack.size()-1).push(Integer.toString(num1/num2));
-			text_2.setText("Divide "+num2+" by "+num2+", pushing the value to the stack");
+			stack.get(stack.size()-1).push(Integer.toString(num2/num1));
+			text_2.setText("Divide "+num1+" by "+num2+", pushing the value to the stack");
 			break;
 		case "imul":
 			num1=Integer.parseInt(stack.get(stack.size()-1).pop());
 			num2=Integer.parseInt(stack.get(stack.size()-1).pop());
 			stack.get(stack.size()-1).push(Integer.toString(num1*num2));
 			text_2.setText("Multiply the values "+num1+" and "+num2+", pushing the value to the stack");
+			break;
+		case "i2b":
+			stack.get(stack.size()-1).push(String.valueOf((byte)Integer.parseInt(stack.get(stack.size()-1).pop())));
+			highlightTablePurple(table_3, 1, check);
+			text_2.setText("Convert the top int of the stack to a byte");
+			break;
+		case "i2c":
+			stack.get(stack.size()-1).push(String.valueOf((char)Integer.parseInt(stack.get(stack.size()-1).pop())));
+			highlightTablePurple(table_3, 1, check);
+			text_2.setText("Convert the top int of the stack to a char");
+			break;
+		case "i2f":
+			stack.get(stack.size()-1).push(String.valueOf((float)Integer.parseInt(stack.get(stack.size()-1).pop())));
+			highlightTablePurple(table_3, 1, check);
+			text_2.setText("Convert the top int of the stack to a float");
+			break;
+		case "i2l":
+			stack.get(stack.size()-1).push(String.valueOf((long)Integer.parseInt(stack.get(stack.size()-1).pop())));
+			highlightTablePurple(table_3, 1, check);
+			text_2.setText("Convert the top int of the stack to a byte");
+			break;
+		case "i2s":
+			stack.get(stack.size()-1).push(String.valueOf((short)Integer.parseInt(stack.get(stack.size()-1).pop())));
+			highlightTablePurple(table_3, 1, check);
+			text_2.setText("Convert the top int of the stack to a byte");
+			break;
+		case "iand":
+			stack.get(stack.size()-1).push(String.valueOf(Integer.parseInt(stack.get(stack.size()-1).pop())&Integer.parseInt(stack.get(stack.size()-1).pop())));
+			highlightTablePurple(table_3, 1, check);
+			text_2.setText("Perform AND operation on the top two values of the stack");
+			break;
+		case "ior":
+			stack.get(stack.size()-1).push(String.valueOf(Integer.parseInt(stack.get(stack.size()-1).pop())|Integer.parseInt(stack.get(stack.size()-1).pop())));
+			highlightTablePurple(table_3, 1, check);
+			text_2.setText("Perform OR operation on the top two values of the stack");
+			break;
+		case "ishl":
+			stack.get(stack.size()-1).push(String.valueOf(Integer.parseInt(stack.get(stack.size()-1).pop()) << 1));
+			highlightTablePurple(table_3, 1, check);
+			text_2.setText("Perform left shift operation on the top two values of the stack");
+			break;
+		case "ishr":
+			stack.get(stack.size()-1).push(String.valueOf(Integer.parseInt(stack.get(stack.size()-1).pop()) >> 1));
+			highlightTablePurple(table_3, 1, check);
+			text_2.setText("Perform right shift operation on the top two values of the stack");
+			break;
+		case "ineg":
+			stack.get(stack.size()-1).push(String.valueOf(-Integer.parseInt(stack.get(stack.size()-1).pop())));
+			highlightTablePurple(table_3, 1, check);
+			text_2.setText("Negate the top value on the stack");
+			break;
+		case "l2i":
+			stack.get(stack.size()-1).push(String.valueOf((int)Long.parseLong(stack.get(stack.size()-1).pop())));
+			highlightTablePurple(table_3, 1, check);
+			text_2.setText("Convert the top long value of the stack to an int");
+			break;
+		case "l2d":
+			stack.get(stack.size()-1).push(String.valueOf((double)Long.parseLong(stack.get(stack.size()-1).pop())));
+			highlightTablePurple(table_3, 1, check);
+			text_2.setText("Convert the top long value of the stack to an int");
+			break;
+		case "l2f":
+			stack.get(stack.size()-1).push(String.valueOf((float)Long.parseLong(stack.get(stack.size()-1).pop())));
+			highlightTablePurple(table_3, 1, check);
+			text_2.setText("Convert the top long value of the stack to an float");
+			break;
+		case "ladd":
+			long longNum1=Long.parseLong(stack.get(stack.size()-1).pop());
+			long longNum2=Long.parseLong(stack.get(stack.size()-1).pop());
+			stack.get(stack.size()-1).push(Long.toString(longNum1+longNum2));
+			text_2.setText("Add the long values "+longNum1+" and "+longNum2+", pushing the value to the stack");
+			break;
+		case "land":
+			stack.get(stack.size()-1).push(String.valueOf(Long.parseLong(stack.get(stack.size()-1).pop())&Long.parseLong(stack.get(stack.size()-1).pop())));
+			highlightTablePurple(table_3, 1, check);
+			text_2.setText("Perform AND operation on the top two long values of the stack");
+			break;
+		case "lor":
+			stack.get(stack.size()-1).push(String.valueOf(Long.parseLong(stack.get(stack.size()-1).pop())|Long.parseLong(stack.get(stack.size()-1).pop())));
+			highlightTablePurple(table_3, 1, check);
+			text_2.setText("Perform OR operation on the top two long values of the stack");
+			break;
+		case "lneg":
+			stack.get(stack.size()-1).push(String.valueOf(-Long.parseLong(stack.get(stack.size()-1).pop())));
+			highlightTablePurple(table_3, 1, check);
+			text_2.setText("Negate the top long value on the stack");
+			break;
+		case "lsub":
+			longNum1=Long.parseLong(stack.get(stack.size()-1).pop());
+			longNum2=Long.parseLong(stack.get(stack.size()-1).pop());
+			stack.get(stack.size()-1).push(Long.toString(longNum2-longNum1));
+			text_2.setText("Subtract "+longNum1+" from "+longNum2+", pushing the value to the stack");
+			break;
+		case "ldiv":
+			longNum1=Long.parseLong(stack.get(stack.size()-1).pop());
+			longNum2=Long.parseLong(stack.get(stack.size()-1).pop());
+			stack.get(stack.size()-1).push(Long.toString(longNum2/longNum1));
+			text_2.setText("Divide "+longNum1+" by "+longNum2+", pushing the value to the stack");
+			break;
+		case "lmul":
+			longNum1=Long.parseLong(stack.get(stack.size()-1).pop());
+			longNum2=Long.parseLong(stack.get(stack.size()-1).pop());
+			stack.get(stack.size()-1).push(Long.toString(longNum1*longNum2));
+			text_2.setText("Multiply the long values "+longNum1+" and "+longNum2+", pushing the value to the stack");
+			break;
+		case "lrem":
+			longNum1=Long.parseLong(stack.get(stack.size()-1).get(1));
+			longNum2=Long.parseLong(stack.get(stack.size()-1).get(0));
+			stack.get(stack.size()-1).pop();
+			stack.get(stack.size()-1).pop();
+			stack.get(stack.size()-1).push(Long.toString(longNum1%longNum2));
+			highlightTablePurple(table_3, 1, check);
+			text_2.setText("Get the remainder of "+longNum1+" divided by "+longNum2);
+			break;
+		case "lshl":
+			stack.get(stack.size()-1).push(String.valueOf(Long.parseLong(stack.get(stack.size()-1).pop()) << 1));
+			highlightTablePurple(table_3, 1, check);
+			text_2.setText("Perform left operation on the top two long values of the stack");
+			break;
+		case "lshr":
+			stack.get(stack.size()-1).push(String.valueOf(Long.parseLong(stack.get(stack.size()-1).pop()) >> 1));
+			highlightTablePurple(table_3, 1, check);
+			text_2.setText("Perform right shift operation on the top two long values of the stack");
 			break;
 		case "new":
 			for(int index=0;index<variables.get(variables.size()-1).getLength();index++)
@@ -465,7 +645,6 @@ public class Builder {
 			stack.get(stack.size()-1).push(Integer.toString((int)variables.get(variables.size()-1).get(0)));
 			highlightTablePurple(table_3, 1, check);
 			text_2.setText("Load the value "+variables.get(1)+" from variable 0, pushing it to the stack");
-			System.out.println("iload: "+table_3.getItem(1));
 			break;
 		case "iload_1":
 			stack.get(stack.size()-1).push(Integer.toString((int)variables.get(variables.size()-1).get(1)));
@@ -486,6 +665,11 @@ public class Builder {
 			stack.get(stack.size()-1).push(parameter);
 			highlightTablePurple(table_3, 1, check);
 			text_2.setText("Push the byte "+parameter+" onto the stack");
+			break;
+		case "sipush":
+			stack.get(stack.size()-1).push(parameter);
+			highlightTablePurple(table_3, 1, check);
+			text_2.setText("Push the short "+parameter+" onto the stack");
 			break;
 		case "invokespecial":
 			stack.get(stack.size()-1).push(parameter);
@@ -512,6 +696,50 @@ public class Builder {
 				highlightTableGreen(table_1, nextStep, check);
 			}
 			text_2.setText("Check if "+num2+" is greater or equal to "+num1+", jumping to step "+parameter+" if so");
+			break;
+		case "if_icmpeq":
+			num1 = Integer.parseInt(stack.get(stack.size()-1).get(0));
+			stack.get(stack.size()-1).pop();
+			num2 = Integer.parseInt(stack.get(stack.size()-1).get(0));
+			stack.get(stack.size()-1).pop();
+			if(num2==num1)
+			{
+				int index=highlightSelection.get(highlightSelection.size()-1);
+				while(!table_1.getItem(index).getText().contains(parameter+":"))
+				{
+					index++;			
+				}
+				highlightTableGreen(table_1, index, check);
+				nextStep=index;
+			}
+			else
+			{
+				nextStep=highlightSelection.get(highlightSelection.size()-1)+1;
+				highlightTableGreen(table_1, nextStep, check);
+			}
+			text_2.setText("Check if "+num2+" is equal to "+num1+", jumping to step "+parameter+" if so");
+			break;
+		case "if_icmple":
+			num1 = Integer.parseInt(stack.get(stack.size()-1).get(0));
+			stack.get(stack.size()-1).pop();
+			num2 = Integer.parseInt(stack.get(stack.size()-1).get(0));
+			stack.get(stack.size()-1).pop();
+			if(num2<=num1)
+			{
+				int index=highlightSelection.get(highlightSelection.size()-1);
+				while(!table_1.getItem(index).getText().contains(parameter+":"))
+				{
+					index++;			
+				}
+				highlightTableGreen(table_1, index, check);
+				nextStep=index;
+			}
+			else
+			{
+				nextStep=highlightSelection.get(highlightSelection.size()-1)+1;
+				highlightTableGreen(table_1, nextStep, check);
+			}
+			text_2.setText("Check if "+num2+" is less than or equal to "+num1+", jumping to step "+parameter+" if so");
 			break;
 		case "if_icmpne":
 			num1 = Integer.parseInt(stack.get(stack.size()-1).get(0));
@@ -557,16 +785,38 @@ public class Builder {
 			}
 			text_2.setText("Check if "+num2+" is greater than "+num1+", jumping to step "+parameter+" if so");
 			break;
+		case "if_icmplt":
+			num1 = Integer.parseInt(stack.get(stack.size()-1).get(0));
+			stack.get(stack.size()-1).pop();
+			num2 = Integer.parseInt(stack.get(stack.size()-1).get(0));
+			stack.get(stack.size()-1).pop();
+			if(num2<num1)
+			{
+				int index=highlightSelection.get(highlightSelection.size()-1);
+				while(!table_1.getItem(index).getText().contains(parameter+":"))
+				{
+					index++;			
+				}
+				highlightTableGreen(table_1, index, check);
+				nextStep=index;
+			}
+			else
+			{
+				nextStep=highlightSelection.get(highlightSelection.size()-1)+1;
+				highlightTableGreen(table_1, nextStep, check);
+			}
+			text_2.setText("Check if "+num2+" is less than "+num1+", jumping to step "+parameter+" if so");
+			break;
 		case "iinc":
 			num1=Integer.parseInt(parameter.substring(0,parameter.indexOf(",")));
 			num2=Integer.parseInt(parameter.substring(parameter.indexOf(" ")+1,parameter.length()));
 			variables.get(variables.size()-1).replace(num1, (Object)((int)variables.get(variables.size()-1).get(num1)+num2));
 			text_2.setText("Increment the value stored in variable "+num1+" by "+num2);
 			break;
-		case "getstatic":
+		/*case "getstatic":
 			stack.get(stack.size()-1).push(parameter);
 			highlightTablePurple(table_3, 1, check);
-			break;
+			break;*/
 		case "ldc":
 			stack.get(stack.size()-1).push(parameter.substring(parameter.indexOf(" ")+1));
 			highlightTablePurple(table_3, 1, check);
@@ -578,7 +828,6 @@ public class Builder {
 			break;
 		case "goto":
 			int index=highlightSelection.get(highlightSelection.size()-1);
-			System.out.println("count: "+parameter);
 			if(Integer.parseInt(parameter)<index)
 			{
 				while(!table_1.getItem(index).getText().startsWith(parameter+":")) index--;
@@ -694,15 +943,66 @@ public class Builder {
 			text_2.setText("Check if "+num2+" is equal to 0, jumping to step "+parameter+" if so");
 			break;
 		case "dup":
-			System.out.println(table_3.getItem(1).getText());
 			stack.get(stack.size()-1).push(table_3.getItem(1).getText());
 			text_2.setText("Duplicate the top value of the stack");
 			highlightTablePurple(table_3, 1, check);
 			break;
+		case "dup_x1":
+			String value1=stack.get(stack.size()-1).pop();
+			String value2=stack.get(stack.size()-1).pop();
+			stack.get(stack.size()-1).push(value1);
+			stack.get(stack.size()-1).push(value2);
+			stack.get(stack.size()-1).push(value1);
+			text_2.setText("Duplicate the top value of the stack, placing it below the second value in the stack");
+			highlightTablePurple(table_3, 3, check);
+			break;
+		case "dup_x2":
+			if(stack.get(stack.size()-1).getLength()==2)
+			{
+				value1=stack.get(stack.size()-1).pop();
+				value2=stack.get(stack.size()-1).pop();
+				stack.get(stack.size()-1).push(value1);
+				stack.get(stack.size()-1).push(value2);
+				stack.get(stack.size()-1).push(value1);
+				text_2.setText("Duplicate the top value of the stack, placing it below the second value in the stack");
+				highlightTablePurple(table_3, 3, check);
+			}
+			else
+			{
+				value1=stack.get(stack.size()-1).pop();
+				value2=stack.get(stack.size()-1).pop();
+				String value3=stack.get(stack.size()-1).pop();
+				stack.get(stack.size()-1).push(value1);
+				stack.get(stack.size()-1).push(value3);
+				stack.get(stack.size()-1).push(value2);
+				stack.get(stack.size()-1).push(value1);
+				text_2.setText("Duplicate the top value of the stack, placing it below the third value in the stack");
+				highlightTablePurple(table_3, 4, check);			
+			}		
+			highlightTablePurple(table_3, 1, check);
+			break;
+		case "dup2":
+			if(stack.get(stack.size()-1).getLength()==2)
+			{
+				value1=stack.get(stack.size()-1).pop();
+				value2=stack.get(stack.size()-1).pop();
+				stack.get(stack.size()-1).push(value2);
+				stack.get(stack.size()-1).push(value1);
+				stack.get(stack.size()-1).push(value2);
+				stack.get(stack.size()-1).push(value1);
+				text_2.setText("Duplicate the top two values of the stack");
+				highlightTablePurple(table_3, 1, check);
+				highlightTablePurple(table_3, 2, check);				
+			}
+			else
+			{
+				stack.get(stack.size()-1).push(table_3.getItem(1).getText());
+				text_2.setText("Duplicate the top value of the stack");
+				highlightTablePurple(table_3, 1, check);			
+			}		
+			break;
 		case "invokestatic":
-			String classParameters=parameter.substring(parameter.indexOf("(")+1,parameter.indexOf(")"));
-			System.out.println(classParameters);
-			
+			String classParameters=parameter.substring(parameter.indexOf("(")+1,parameter.indexOf(")"));		
 			for(int j=0;j<bytecodeParse.getCodeBytes().size();j++)
 			{
 				if(bytecodeParse.getClassNames().get(bytecodeParse.getCodeBytes().get(j)).contains(parameter.substring(parameter.indexOf(".")+1,parameter.indexOf(":"))))
@@ -796,8 +1096,79 @@ public class Builder {
 				objectArray[index]=(Object)iArray[index];
 			}
 			variables.get(variables.size()-1).replace(variableNum, arrayString(objectArray));
-			text_2.setText("Store value "+arrayValue+" into index "+arrayIndex);
-			
+			text_2.setText("Store value "+arrayValue+" into index "+arrayIndex);		
+			break;
+		case "sastore":
+			short sArrayValue=Short.parseShort(stack.get(stack.size()-1).get(0));
+			arrayIndex=Integer.parseInt(stack.get(stack.size()-1).get(1));
+			Short[] sArray=toShortArray(stack.get(stack.size()-1).get(2));			
+			variableNum=0;
+			for(index=1;index<variables.get(variables.size()-1).getLength();index++)
+			{				
+				if(((String)variables.get(variables.size()-1).get(index)).substring((variables.get(variables.size()-1).get(index).toString()).indexOf(":")+1).equals(arrayString(sArray)))
+				{
+					variableNum=index;
+				}
+			}
+			stack.get(stack.size()-1).pop();
+			stack.get(stack.size()-1).pop();
+			stack.get(stack.size()-1).pop();
+			sArray[arrayIndex]=sArrayValue;
+			objectArray=new Object[sArray.length];
+			for(index=0;index<objectArray.length;index++)
+			{
+				objectArray[index]=(Object)sArray[index];
+			}
+			variables.get(variables.size()-1).replace(variableNum, arrayString(objectArray));
+			text_2.setText("Store short value "+sArrayValue+" into index "+arrayIndex);		
+			break;
+		case "bastore":
+			byte bArrayValue=Byte.parseByte(stack.get(stack.size()-1).get(0));
+			arrayIndex=Integer.parseInt(stack.get(stack.size()-1).get(1));
+			Byte[] bArray=toByteArray(stack.get(stack.size()-1).get(2));			
+			variableNum=0;
+			for(index=1;index<variables.get(variables.size()-1).getLength();index++)
+			{				
+				if(((String)variables.get(variables.size()-1).get(index)).substring((variables.get(variables.size()-1).get(index).toString()).indexOf(":")+1).equals(arrayString(bArray)))
+				{
+					variableNum=index;
+				}
+			}
+			stack.get(stack.size()-1).pop();
+			stack.get(stack.size()-1).pop();
+			stack.get(stack.size()-1).pop();
+			bArray[arrayIndex]=bArrayValue;
+			objectArray=new Object[bArray.length];
+			for(index=0;index<objectArray.length;index++)
+			{
+				objectArray[index]=(Object)bArray[index];
+			}
+			variables.get(variables.size()-1).replace(variableNum, arrayString(objectArray));
+			text_2.setText("Store byte value "+bArrayValue+" into index "+arrayIndex);		
+			break;
+		case "castore":
+			char cArrayValue=(stack.get(stack.size()-1).get(0).charAt(0));
+			arrayIndex=Integer.parseInt(stack.get(stack.size()-1).get(1));
+			Character[] cArray=toCharArray(stack.get(stack.size()-1).get(2));			
+			variableNum=0;
+			for(index=1;index<variables.get(variables.size()-1).getLength();index++)
+			{				
+				if(((String)variables.get(variables.size()-1).get(index)).substring((variables.get(variables.size()-1).get(index).toString()).indexOf(":")+1).equals(arrayString(cArray)))
+				{
+					variableNum=index;
+				}
+			}
+			stack.get(stack.size()-1).pop();
+			stack.get(stack.size()-1).pop();
+			stack.get(stack.size()-1).pop();
+			cArray[arrayIndex]=cArrayValue;
+			objectArray=new Object[cArray.length];
+			for(index=0;index<objectArray.length;index++)
+			{
+				objectArray[index]=(Object)cArray[index];
+			}
+			variables.get(variables.size()-1).replace(variableNum, arrayString(objectArray));
+			text_2.setText("Store byte value "+cArrayValue+" into index "+arrayIndex);		
 			break;
 		case "iaload":
 			arrayIndex=Integer.parseInt(table_3.getItem(1).getText());
@@ -808,14 +1179,39 @@ public class Builder {
 			text_2.setText("Push value "+iArray[arrayIndex]+" at index "+arrayIndex+" onto the stack");
 			highlightTablePurple(table_3, 1, check);
 			break;
+		case "saload":
+			arrayIndex=Integer.parseInt(table_3.getItem(1).getText());
+			sArray=toShortArray(table_3.getItem(2).getText());
+			stack.get(stack.size()-1).pop();
+			stack.get(stack.size()-1).pop();
+			stack.get(stack.size()-1).push(Short.toString(sArray[arrayIndex]));
+			text_2.setText("Push short value "+sArray[arrayIndex]+" at index "+arrayIndex+" onto the stack");
+			highlightTablePurple(table_3, 1, check);
+			break;
+		case "baload":
+			arrayIndex=Integer.parseInt(table_3.getItem(1).getText());
+			bArray=toByteArray(table_3.getItem(2).getText());
+			stack.get(stack.size()-1).pop();
+			stack.get(stack.size()-1).pop();
+			stack.get(stack.size()-1).push(Short.toString(bArray[arrayIndex]));
+			text_2.setText("Push byte value "+bArray[arrayIndex]+" at index "+arrayIndex+" onto the stack");
+			highlightTablePurple(table_3, 1, check);
+			break;
+		case "caload":
+			arrayIndex=Integer.parseInt(table_3.getItem(1).getText());
+			cArray=toCharArray(table_3.getItem(2).getText());
+			stack.get(stack.size()-1).pop();
+			stack.get(stack.size()-1).pop();
+			stack.get(stack.size()-1).push(Character.toString(cArray[arrayIndex]));
+			text_2.setText("Push byte value "+cArray[arrayIndex]+" at index "+arrayIndex+" onto the stack");
+			highlightTablePurple(table_3, 1, check);
+			break;
 		case "ireturn\n":
 			if(stack.size()>1)
 			{
 				
 				stack.get(stack.size()-2).push(stack.get(stack.size()-1).pop());
-				System.out.println("stack before: "+stack.size());
 				stack.remove(stack.size()-1);
-				System.out.println("stack after: "+stack.size());
 				variables.remove(variables.size()-1);
 				opcodeString.remove(opcodeString.size()-1);
 				try {
@@ -832,20 +1228,48 @@ public class Builder {
 				catch(IllegalArgumentException e)
 				{
 					e.printStackTrace();
-				}
-				System.out.println("table size: "+table_1.getItemCount());				
+				}			
 				highlightSelection.remove(highlightSelection.size()-1);
 			}
+			break;
+		case "ifnonnull":
+			if(!stack.get(stack.size()-1).pop().equals("null"))
+			{
+				index=highlightSelection.get(highlightSelection.size()-1);
+				if(Integer.parseInt(parameter)<index)
+				{
+					while(!table_1.getItem(index).getText().startsWith(parameter+":")) index--;
+				}
+				else
+				{
+					while(!table_1.getItem(index).getText().startsWith(parameter+":")) index++;
+				}
+				highlightTableGreen(table_1, index, check);
+				nextStep=index;
+			}			
+			text_2.setText("Jump to step "+parameter+" if top value is not null");
+			break;
+		case "ifnull":
+			if(stack.get(stack.size()-1).pop().equals("null"))
+			{
+				index=highlightSelection.get(highlightSelection.size()-1);
+				if(Integer.parseInt(parameter)<index)
+				{
+					while(!table_1.getItem(index).getText().startsWith(parameter+":")) index--;
+				}
+				else
+				{
+					while(!table_1.getItem(index).getText().startsWith(parameter+":")) index++;
+				}
+				highlightTableGreen(table_1, index, check);
+				nextStep=index;
+			}			
+			text_2.setText("Jump to step "+parameter+" if top value is null");
 			break;
 		case "return\n":
-			System.out.println("stack size: "+stack.size());
 			if(stack.size()>1)
 			{
-				
-				stack.get(stack.size()-2).push(stack.get(stack.size()-1).pop());
-				System.out.println("stack before: "+stack.size());
 				stack.remove(stack.size()-1);
-				System.out.println("stack after: "+stack.size());
 				variables.remove(variables.size()-1);
 				opcodeString.remove(opcodeString.size()-1);
 				try {
@@ -862,13 +1286,14 @@ public class Builder {
 				catch(IllegalArgumentException e)
 				{
 					e.printStackTrace();
-				}
-				System.out.println("table size: "+table_1.getItemCount());
-				
+				}				
 				highlightSelection.remove(highlightSelection.size()-1);
 				
 			}
 			break;
+		case "nop":
+			text_2.setText("Do nothing");
+			break; //98
 		/*default:
 			System.out.println("test");
 			for(int index=1;index<table_2.getItemCount();index++)
@@ -881,14 +1306,27 @@ public class Builder {
 		fillTable(stack.get(stack.size()-1).getStackItems());
 		
 		table_4.setItemCount(variables.get(variables.size()-1).getLength()+1);
-
-		for(int index=1;index<table_4.getItemCount();index++)
+		if(!variables.get(variables.size()-1).getVariableItems().containsKey(0))
 		{
-			try
+			for(int index=1;index<table_4.getItemCount();index++)
 			{
-				table_4.getItem(index).setText("Variable "+index+": "+variables.get(variables.size()-1).get(index).toString());
+				try
+				{
+					table_4.getItem(index).setText("Variable "+index+": "+variables.get(variables.size()-1).get(index).toString());
+				}
+				catch(NullPointerException e) {}
 			}
-			catch(NullPointerException e) {}
+		}
+		else
+		{
+			for(int index=0;index<table_4.getItemCount()-1;index++)
+			{
+				try
+				{
+					table_4.getItem(index+1).setText("Variable "+index+": "+variables.get(variables.size()-1).get(index).toString());
+				}
+				catch(NullPointerException e) {}
+			}
 		}
 	}
 	
@@ -911,11 +1349,6 @@ public class Builder {
 	public void open() {
 		Display display = Display.getDefault();
 		//final File f = new File(bytecodeInterpreter.Builder.class.getProtectionDomain().getCodeSource().getLocation().getPath());
-		try {
-			System.out.println(Object.class.getResource("Object.class").getContent());
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 		createContents();
 		shell.open();
 		shell.layout();
@@ -1127,11 +1560,13 @@ public class Builder {
 		table_1.setToolTipText("Bytecode");
 		table_1.setBounds(301, 50, 252, 356);
 		formToolkit.paintBordersFor(table_1);
-		
+		TableItem item1 = new TableItem(table_1, SWT.CENTER);
+	    item1.setText("Bytecode");
+	    Font boldFont = new Font( item1.getDisplay(), new FontData( "Arial", 12, SWT.BOLD ) );
+	    item1.setFont( boldFont );
 		table_1.addListener(SWT.MouseDown, new Listener(){
 			@Override
 		    public void handleEvent(Event event) {
-				
 				Point pt = new Point(event.x, event.y);
 	            TableItem item = table_1.getItem(pt);
 	            try
@@ -1145,8 +1580,13 @@ public class Builder {
 							{
 								Display display = Display.getDefault();
 								item.setBackground(0, new Color(display, 255, 0, 0));
-								while(selected!=item)
+								int stackDepth=stack.size()-1;
+								while(selected!=item || (stackDepth!=stack.size()-1))
 								{
+									if(selected.getText().contains("return"))
+									{
+										break;
+									}
 									for(int index=0;index<table_3.getItemCount();index++)
 									{
 										table_3.getItem(index).setBackground(0, new Color(display, 255, 255, 255));
@@ -1190,10 +1630,7 @@ public class Builder {
 		formToolkit.adapt(tableCursor);
 		formToolkit.paintBordersFor(tableCursor);
 			
-		TableItem item1 = new TableItem(table_1, SWT.CENTER);
-	    item1.setText("Bytecode");
-	    Font boldFont = new Font( item1.getDisplay(), new FontData( "Arial", 12, SWT.BOLD ) );
-	    item1.setFont( boldFont );
+		
 	    
 		table_2 = new Table(shell, SWT.BORDER | SWT.FULL_SELECTION);
 		table_2.setBounds((int)(shell.getSize().x*0.26875), 50, (int)(shell.getSize().x*0.22589), (int)(shell.getSize().y*0.5881));
@@ -1309,7 +1746,14 @@ public class Builder {
 					table_1.getItem(highlightSelection.get(highlightSelection.size()-1)).setBackground(0, new Color(display, 255, 0, 0));
 					getSelection();
 				}
-				
+				if(stack.size()!=1)
+				{
+					table_1.getItem(0).setText("Bytecode (Stack Depth: "+stack.size()+")");
+				}
+				else
+				{
+					table_1.getItem(0).setText("Bytecode");
+				}
 			}
 		});
 		formToolkit.adapt(button_1, true, true);

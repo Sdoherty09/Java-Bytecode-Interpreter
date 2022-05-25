@@ -7,5 +7,9 @@ class ArrayExample
 		{
 			nums2[index] = index;
 		}
+		for(int index=0;index<nums2.length;index++)
+		{
+			System.out.println(nums2[index]);
+		}
 	}
 }
